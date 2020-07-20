@@ -40,3 +40,6 @@ deployed
 data
 data*
 cache
+
+# data belonging to particular games that are not available open-source-ly
+server/games/elfik
