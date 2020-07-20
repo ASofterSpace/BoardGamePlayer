@@ -4,16 +4,18 @@
  */
 package com.asofterspace.boardGamePlayer;
 
+import com.asofterspace.toolbox.io.Directory;
 import com.asofterspace.toolbox.io.JSON;
 import com.asofterspace.toolbox.io.JsonFile;
 import com.asofterspace.toolbox.io.JsonParseException;
 import com.asofterspace.toolbox.utils.Record;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class Database {
+
+	private static final String DB_FILE_NAME = "database.json";
+
+	private Directory dataDir;
 
 	private JsonFile dbFile;
 
@@ -24,9 +26,13 @@ public class Database {
 	*/
 
 
-	public Database() {
+	public Database(Directory dataDir) {
 
-		this.dbFile = new JsonFile("config/database.json");
+		this.dataDir = dataDir;
+
+		dataDir.create();
+
+		this.dbFile = new JsonFile(dataDir, DB_FILE_NAME);
 		this.dbFile.createParentDirectory();
 		try {
 			this.root = dbFile.getAllContents();

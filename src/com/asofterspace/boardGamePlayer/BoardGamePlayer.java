@@ -4,23 +4,20 @@
  */
 package com.asofterspace.boardGamePlayer;
 
-import com.asofterspace.toolbox.io.File;
-import com.asofterspace.toolbox.io.JSON;
-import com.asofterspace.toolbox.io.JsonFile;
-import com.asofterspace.toolbox.io.JsonParseException;
-import com.asofterspace.toolbox.io.SimpleFile;
-import com.asofterspace.toolbox.io.TextFile;
-import com.asofterspace.toolbox.utils.DateUtils;
-import com.asofterspace.toolbox.utils.Record;
-import com.asofterspace.toolbox.utils.StrUtils;
+import com.asofterspace.boardGamePlayer.web.Server;
+import com.asofterspace.toolbox.io.Directory;
 import com.asofterspace.toolbox.Utils;
 
 
 public class BoardGamePlayer {
 
+	public final static String DATA_DIR = "data";
+	public final static String SERVER_DIR = "server";
+	public final static String WEB_ROOT_DIR = "deployed";
+
 	public final static String PROGRAM_TITLE = "BoardGamePlayer";
-	public final static String VERSION_NUMBER = "0.0.0.1(" + Utils.TOOLBOX_VERSION_NUMBER + ")";
-	public final static String VERSION_DATE = "19. Jul 2020 - 19. Jul 2020";
+	public final static String VERSION_NUMBER = "0.0.0.2(" + Utils.TOOLBOX_VERSION_NUMBER + ")";
+	public final static String VERSION_DATE = "19. Jul 2020 - 20. Jul 2020";
 
 	public static void main(String[] args) {
 
@@ -41,13 +38,44 @@ public class BoardGamePlayer {
 			}
 		}
 
+
+		System.out.println("Looking at directories...");
+
+		Directory dataDir = new Directory(DATA_DIR);
+
+		Directory origDir = new Directory(SERVER_DIR);
+
+		Directory webRoot = new Directory(WEB_ROOT_DIR);
+
+
 		System.out.println("Loading database...");
 
-		Database database = new Database();
+		Database database = new Database(dataDir);
 
-		System.out.println("Saving database...");
+		/*
+		System.out.println("Templating the web application...");
 
-		database.save();
+		JsonFile jsonConfigFile = new JsonFile(origDir, "webengine.json");
+		JSON jsonConfig = jsonConfigFile.getAllContents();
+
+		WebTemplateEngine engine = new WebTemplateEngine(origDir, jsonConfig);
+
+		engine.compileTo(webRoot);
+		*/
+
+		System.out.println("Starting the server...");
+
+		Server server = new Server(webRoot, database);
+
+		/*
+		List<String> whitelist = database.getFileWhitelist();
+
+		server.setWhitelist(whitelist);
+		*/
+
+		boolean async = false;
+
+		server.serve(async);
 
 		System.out.println("Done! Have a nice day! :)");
 	}
