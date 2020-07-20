@@ -6,7 +6,13 @@ package com.asofterspace.boardGamePlayer;
 
 import com.asofterspace.boardGamePlayer.web.Server;
 import com.asofterspace.toolbox.io.Directory;
+import com.asofterspace.toolbox.io.JSON;
+import com.asofterspace.toolbox.io.JsonFile;
+import com.asofterspace.toolbox.io.JsonParseException;
 import com.asofterspace.toolbox.Utils;
+import com.asofterspace.toolbox.web.WebTemplateEngine;
+
+import java.util.List;
 
 
 public class BoardGamePlayer {
@@ -48,36 +54,41 @@ public class BoardGamePlayer {
 		Directory webRoot = new Directory(WEB_ROOT_DIR);
 
 
-		System.out.println("Loading database...");
+		try {
+			System.out.println("Loading database...");
 
-		Database database = new Database(dataDir);
+			Database database = new Database(dataDir);
 
-		/*
-		System.out.println("Templating the web application...");
+			JsonFile jsonConfigFile = new JsonFile(origDir, "webengine.json");
+			JSON jsonConfig = jsonConfigFile.getAllContents();
 
-		JsonFile jsonConfigFile = new JsonFile(origDir, "webengine.json");
-		JSON jsonConfig = jsonConfigFile.getAllContents();
 
-		WebTemplateEngine engine = new WebTemplateEngine(origDir, jsonConfig);
+			System.out.println("Templating the web application...");
 
-		engine.compileTo(webRoot);
-		*/
+			WebTemplateEngine engine = new WebTemplateEngine(origDir, jsonConfig);
 
-		System.out.println("Starting the server...");
+			engine.compileTo(webRoot);
 
-		Server server = new Server(webRoot, database);
 
-		/*
-		List<String> whitelist = database.getFileWhitelist();
+			System.out.println("Starting the server...");
 
-		server.setWhitelist(whitelist);
-		*/
+			Server server = new Server(webRoot, database);
 
-		boolean async = false;
+			List<String> whitelist = jsonConfig.getArrayAsStringList("files");
 
-		server.serve(async);
+			server.setWhitelist(whitelist);
 
-		System.out.println("Done! Have a nice day! :)");
+			boolean async = false;
+
+			server.serve(async);
+
+
+			System.out.println("Server done, all shut down and cleaned up! Have a nice day! :)");
+
+		} catch (JsonParseException e) {
+
+			System.out.println("Oh no! The input could not be parsed: " + e);
+		}
 	}
 
 }

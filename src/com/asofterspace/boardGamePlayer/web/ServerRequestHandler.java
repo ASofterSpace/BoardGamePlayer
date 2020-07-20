@@ -78,6 +78,7 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 
 			case "/availableGames":
 				Record games = Record.emptyArray();
+				games.append("Elfik");
 				answer = new WebServerAnswerInJson(games);
 				break;
 
