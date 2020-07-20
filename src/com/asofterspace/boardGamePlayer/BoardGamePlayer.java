@@ -76,7 +76,7 @@ public class BoardGamePlayer {
 			boolean recursively = true;
 			List<File> gameFiles = gamesDir.getAllFiles(recursively);
 			for (File gameFile : gameFiles) {
-				whitelist.add(origDir.getRelativePath(gameFile));
+				whitelist.add(origDir.getRelativePath(gameFile).replace('\\', '/'));
 			}
 			jsonConfig.set("files", whitelist);
 

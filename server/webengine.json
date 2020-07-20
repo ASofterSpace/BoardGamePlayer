@@ -4,6 +4,7 @@
 	"files": [
 		"index.htm",
 		"style.css",
+		"gameSelector.js",
 	],
-	"version": 1
+	"version": 2
 }
