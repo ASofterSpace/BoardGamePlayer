@@ -9,6 +9,6 @@ div#gameSelection > img {
 	max-width: 175pt;
 }
 
-canvas#gameArea {
+div#gameArea {
 	width: 100%;
 }

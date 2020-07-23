@@ -25,8 +25,8 @@ public class BoardGamePlayer {
 	public final static String WEB_ROOT_DIR = "deployed";
 
 	public final static String PROGRAM_TITLE = "BoardGamePlayer";
-	public final static String VERSION_NUMBER = "0.0.0.2(" + Utils.TOOLBOX_VERSION_NUMBER + ")";
-	public final static String VERSION_DATE = "19. Jul 2020 - 20. Jul 2020";
+	public final static String VERSION_NUMBER = "0.0.0.3(" + Utils.TOOLBOX_VERSION_NUMBER + ")";
+	public final static String VERSION_DATE = "19. Jul 2020 - 23. Jul 2020";
 
 	public static void main(String[] args) {
 
