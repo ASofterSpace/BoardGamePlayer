@@ -20,16 +20,39 @@ window.game = {
 		};
 		this.ids++;
 
-		// TODO :: draw the image on the canvas with a certain size and positioned so that the center of the image is
+		// we draw the image on the canvas with a certain size and positioned so that the center of the image is
 		// at the (x,y) position of the visible board game area, where x and y are on a scale from 0 to 1
+		var div = document.createElement("div");
+		div.id = "cardHolder" + card.id;
+
 		var img = document.createElement("img");
 		img.src = imgPath;
 		img.id = "cardFront" + card.id;
-		img.style.position = "absolute";
-		img.style.top = this.height * y + "px"; // TODO: minus the half-height of the image itself, same for width
-		img.style.left = this.width * x + "px";
-		img.style.width = (this.width / 12) + "px";
-		this.gameArea.appendChild(img);
+		var imgWidth = (this.width / 12);
+		var imgHeight = 1.53846 * imgWidth;
+		img.style.width = imgWidth + "px";
+		img.style.borderRadius = "8pt";
+		// this line removes the whitespace below the image
+		img.style.display = "block";
+
+		div.style.position = "absolute";
+		div.style.top = ((this.height * y) - (imgHeight / 2)) + "px";
+		div.style.left = ((this.width * x) - (imgWidth / 2)) + "px";
+		div.style.borderRadius = "8pt";
+
+		var innerDiv = document.createElement("div");
+		innerDiv.style.position = "absolute";
+		innerDiv.style.top = "0pt";
+		innerDiv.style.left = "0pt";
+		innerDiv.style.height = "100%";
+		innerDiv.style.width = "100%";
+		innerDiv.style.boxShadow = "inset 0pt 0pt 5pt 5pt black";
+		innerDiv.style.borderRadius = "8pt";
+
+		div.appendChild(img);
+		div.appendChild(innerDiv);
+		this.gameArea.appendChild(div);
+
 		return card;
 	},
 
@@ -43,9 +66,7 @@ window.startGame = function(game) {
 	document.getElementById("intro").style.display = "none";
 	document.getElementById("gameSelection").style.display = "none";
 
-	// TODO :: get client height of the window
-	windowClientHeight = 800;
-	window.game.height = windowClientHeight - document.getElementById("nameBar").clientHeight;
+	window.game.height = window.innerHeight - document.getElementById("nameBar").clientHeight;
 	window.game.gameArea = document.getElementById("gameArea");
 	window.game.gameArea.style.height = window.game.height + "px";
 	window.game.width = window.game.gameArea.clientWidth;

@@ -1,3 +1,7 @@
+body {
+	overflow: hidden;
+}
+
 div#intro {
 	padding-top: 5pt;
 }
