@@ -7,10 +7,53 @@ window.game = {
 	width: 0,
 	height: 0,
 	ids: 0,
+	bigCardImg: null,
+	textDiv: null,
 
 	startElfik: function() {
 
-		this.cards.push(this.loadCard(this.folder + "characters/" + "cendrerz3.jpg", 0.5, 0.5));
+		this.setupBoard();
+
+		var textDiv = document.createElement("div");
+		this.textDiv = textDiv;
+		textDiv.style.position = "absolute";
+		textDiv.style.top = "8pt";
+		textDiv.style.left = "8pt";
+		textDiv.innerHTML = "Choose which character you would like to play...";
+		this.gameArea.append(textDiv);
+
+		this.cards.push(this.loadCard(this.folder + "characters/" + "cendre.jpg", 0.55, 0.35));
+		this.cards.push(this.loadCard(this.folder + "characters/" + "eloen.jpg", 0.45, 0.35));
+		this.cards.push(this.loadCard(this.folder + "characters/" + "elrun.jpg", 0.35, 0.65));
+		this.cards.push(this.loadCard(this.folder + "characters/" + "terkan.jpg", 0.25, 0.65));
+		this.cards.push(this.loadCard(this.folder + "characters/" + "rayin.jpg", 0.55, 0.65));
+	},
+
+	setupBoard: function() {
+
+		var bigCardImg = document.createElement("img");
+		this.bigCardImg = bigCardImg;
+		var bigCardImgWidth = (this.width / 4);
+		var bigCardImgHeight = 1.53846 * bigCardImgWidth;
+		bigCardImg.style.width = bigCardImgWidth + "px";
+		bigCardImg.style.borderRadius = "16pt";
+		bigCardImg.style.display = "block";
+		var bigCardDiv = document.createElement("div");
+		var bigCardInnerDiv = document.createElement("div");
+		bigCardInnerDiv.style.position = "absolute";
+		bigCardInnerDiv.style.top = "0pt";
+		bigCardInnerDiv.style.left = "0pt";
+		bigCardInnerDiv.style.height = "100%";
+		bigCardInnerDiv.style.width = "100%";
+		bigCardInnerDiv.style.boxShadow = "inset 0pt 0pt 10pt 10pt black";
+		bigCardInnerDiv.style.borderRadius = "16pt";
+		bigCardDiv.appendChild(bigCardImg);
+		bigCardDiv.appendChild(bigCardInnerDiv);
+		bigCardDiv.style.position = "absolute";
+		bigCardDiv.style.top = ((this.height / 2) - (bigCardImgHeight / 2)) + "px";
+		bigCardDiv.style.right = "2px";
+		bigCardDiv.style.borderRadius = "16pt";
+		this.gameArea.appendChild(bigCardDiv);
 	},
 
 	loadCard: function(imgPath, x, y) {
@@ -48,6 +91,10 @@ window.game = {
 		innerDiv.style.width = "100%";
 		innerDiv.style.boxShadow = "inset 0pt 0pt 5pt 5pt black";
 		innerDiv.style.borderRadius = "8pt";
+		innerDiv.addEventListener("mouseover", function(e) {
+			console.log("navigating to " + imgPath);
+			window.game.bigCardImg.src = imgPath;
+		}, false);
 
 		div.appendChild(img);
 		div.appendChild(innerDiv);
