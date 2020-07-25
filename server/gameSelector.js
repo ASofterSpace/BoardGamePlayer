@@ -60,13 +60,20 @@ window.game = {
 
 window.startGame = function(game) {
 
+	var playerName = document.getElementById("our_name").value;
+	if (playerName.trim() == "") {
+		alert("Please enter your name before playing a game!");
+		return;
+	}
+
 	window.game.name = game;
 	window.game.folder = "/games/" + game + "/";
 
 	document.getElementById("intro").style.display = "none";
+	document.getElementById("nameBar").style.display = "none";
 	document.getElementById("gameSelection").style.display = "none";
 
-	window.game.height = window.innerHeight - document.getElementById("nameBar").clientHeight;
+	window.game.height = window.innerHeight;
 	window.game.gameArea = document.getElementById("gameArea");
 	window.game.gameArea.style.height = window.game.height + "px";
 	window.game.width = window.game.gameArea.clientWidth;

@@ -7,9 +7,9 @@ div#intro {
 }
 div#gameSelection {
 	padding-top: 10pt;
-	padding-bottom: 5pt;
 }
 div#gameSelection > img {
+	padding-top: 5pt;
 	max-width: 175pt;
 }
 
