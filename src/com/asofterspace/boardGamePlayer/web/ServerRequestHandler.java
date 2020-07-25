@@ -5,6 +5,7 @@
 package com.asofterspace.boardGamePlayer.web;
 
 import com.asofterspace.boardGamePlayer.Database;
+import com.asofterspace.boardGamePlayer.games.Elfik;
 import com.asofterspace.toolbox.io.Directory;
 import com.asofterspace.toolbox.io.File;
 import com.asofterspace.toolbox.io.JSON;
@@ -75,6 +76,18 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 				answer = new WebServerAnswerInJson(jsonAnswer);
 				break;
 			*/
+
+			case "/startGame":
+				switch (json.getString("gameName")) {
+					case "elfik":
+						int playerId = Elfik.addPlayer(json.getString("playerName"));
+						answer = new WebServerAnswerInJson("{\"playerId\": " + playerId + "}");
+						break;
+					default:
+						respond(400);
+						break;
+				}
+				break;
 
 			case "/availableGames":
 				Record games = Record.emptyArray();

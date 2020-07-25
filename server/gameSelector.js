@@ -1,6 +1,8 @@
 window.game = {
 
 	name: "",
+	playerName: "",
+	playerId: 0,
 	folder: "",
 	cards: [],
 	gameArea: null,
@@ -60,6 +62,8 @@ window.game = {
 
 		var card = {
 			id: this.ids,
+			// the DOM element that we should target with events to arrive at this card
+			eventTarget: null,
 		};
 		this.ids++;
 
@@ -92,9 +96,9 @@ window.game = {
 		innerDiv.style.boxShadow = "inset 0pt 0pt 5pt 5pt black";
 		innerDiv.style.borderRadius = "8pt";
 		innerDiv.addEventListener("mouseover", function(e) {
-			console.log("navigating to " + imgPath);
 			window.game.bigCardImg.src = imgPath;
 		}, false);
+		card.eventTarget = innerDiv;
 
 		div.appendChild(img);
 		div.appendChild(innerDiv);
@@ -113,7 +117,29 @@ window.startGame = function(game) {
 		return;
 	}
 
+	var request = new XMLHttpRequest();
+	request.open("POST", "startGame", false);
+	request.setRequestHeader("Content-Type", "application/json");
+
+	request.onreadystatechange = function() {
+		if (request.readyState == 4 && request.status == 200) {
+			var result = JSON.parse(request.response);
+			window.game.playerId = result.playerId;
+			switch (window.game.name) {
+				case 'elfik':
+					window.game.startElfik();
+					break;
+			}
+		}
+	}
+
+	var data = {
+		playerName: playerName,
+		gameName: game,
+	};
+
 	window.game.name = game;
+	window.game.playerName = playerName;
 	window.game.folder = "/games/" + game + "/";
 
 	document.getElementById("intro").style.display = "none";
@@ -125,9 +151,5 @@ window.startGame = function(game) {
 	window.game.gameArea.style.height = window.game.height + "px";
 	window.game.width = window.game.gameArea.clientWidth;
 
-	switch (game) {
-		case 'elfik':
-			window.game.startElfik();
-			break;
-	}
-}
+	request.send(JSON.stringify(data));
+};
