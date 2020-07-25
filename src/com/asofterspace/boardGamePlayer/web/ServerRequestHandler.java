@@ -77,6 +77,12 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 				break;
 			*/
 
+			case "/availableGames":
+				Record games = Record.emptyArray();
+				games.append("Elfik");
+				answer = new WebServerAnswerInJson(games);
+				break;
+
 			case "/startGame":
 				switch (json.getString("gameName")) {
 					case "elfik":
@@ -89,10 +95,16 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 				}
 				break;
 
-			case "/availableGames":
-				Record games = Record.emptyArray();
-				games.append("Elfik");
-				answer = new WebServerAnswerInJson(games);
+			case "/chooseCharacter":
+				switch (json.getString("gameName")) {
+					case "elfik":
+						int playerId = json.getInteger("playerId");
+						Elfik.setCharacter(playerId, json.getString("charName"));
+						break;
+					default:
+						respond(400);
+						break;
+				}
 				break;
 
 			default:

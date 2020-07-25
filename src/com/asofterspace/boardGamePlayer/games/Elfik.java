@@ -10,18 +10,29 @@ import java.util.List;
 
 public class Elfik {
 
-	private static int playerNum = -1;
+	private static int playerNum = 0;
 
-	private static List<String> players = new ArrayList<>();
+	private static List<Player> players = new ArrayList<>();
 
 
 	public static int addPlayer(String playerName) {
 
+		Player player = new Player(playerNum, playerName);
+
+		players.add(player);
+
 		playerNum++;
 
-		players.add(playerName);
+		return player.getId();
+	}
 
-		return playerNum;
+	public static void setCharacter(int playerId, String charName) {
+
+		for (int i = 0; i < playerNum; i++) {
+			if (players.get(i).getId() == playerId) {
+				players.get(i).setCharName(charName);
+			}
+		}
 	}
 
 }

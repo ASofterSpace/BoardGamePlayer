@@ -24,11 +24,47 @@ window.game = {
 		textDiv.innerHTML = "Choose which character you would like to play...";
 		this.gameArea.append(textDiv);
 
-		this.cards.push(this.loadCard(this.folder + "characters/" + "cendre.jpg", 0.55, 0.35));
-		this.cards.push(this.loadCard(this.folder + "characters/" + "eloen.jpg", 0.45, 0.35));
-		this.cards.push(this.loadCard(this.folder + "characters/" + "elrun.jpg", 0.35, 0.65));
-		this.cards.push(this.loadCard(this.folder + "characters/" + "terkan.jpg", 0.25, 0.65));
-		this.cards.push(this.loadCard(this.folder + "characters/" + "rayin.jpg", 0.55, 0.65));
+		this.loadCharacterToChoose("cendre", 0.55, 0.35);
+		this.loadCharacterToChoose("eloen", 0.45, 0.35);
+		this.loadCharacterToChoose("elrun", 0.35, 0.65);
+		this.loadCharacterToChoose("terkan", 0.25, 0.65);
+		this.loadCharacterToChoose("rayin", 0.55, 0.65);
+	},
+
+	loadCharacterToChoose: function(charName, x, y) {
+
+		var card = this.loadCard(this.folder + "characters/" + charName + ".jpg", x, y);
+		this.cards.push(card);
+
+		card.eventTarget.addEventListener("click", function(e) {
+
+			window.game.textDiv.innerHTML = "You chose well! Now let's wait for the others...";
+
+			for (var i = 0; i < window.game.cards.length; i++) {
+				window.game.cards[i].removalTarget.style.display = "none";
+			}
+
+			window.game.cards = [];
+
+			var request = new XMLHttpRequest();
+			request.open("POST", "chooseCharacter", false);
+			request.setRequestHeader("Content-Type", "application/json");
+
+			request.onreadystatechange = function() {
+				if (request.readyState == 4 && request.status == 200) {
+					// TODO :: start the game loop (in which we call the server once a second asking for updates)
+				}
+			}
+
+			var data = {
+				playerId: window.game.playerId,
+				gameName: window.game.name,
+				charName: charName,
+			};
+
+			request.send(JSON.stringify(data));
+
+		}, false);
 	},
 
 	setupBoard: function() {
@@ -64,6 +100,8 @@ window.game = {
 			id: this.ids,
 			// the DOM element that we should target with events to arrive at this card
 			eventTarget: null,
+			// the DOM element that we should target to remove this card again
+			removalTarget: null,
 		};
 		this.ids++;
 
@@ -71,6 +109,7 @@ window.game = {
 		// at the (x,y) position of the visible board game area, where x and y are on a scale from 0 to 1
 		var div = document.createElement("div");
 		div.id = "cardHolder" + card.id;
+		card.removalTarget = div;
 
 		var img = document.createElement("img");
 		img.src = imgPath;
