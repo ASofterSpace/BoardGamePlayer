@@ -14,6 +14,7 @@ window.game = {
 	height: 0,
 	ids: 0,
 	bigCardImg: null,
+	bigCardInnerDiv: null,
 	textDiv: null,
 	textDivText: "",
 	rulesDiv: null,
@@ -97,17 +98,21 @@ window.game = {
 						if (data.action == "start") {
 							window.game.println("Aaand the game is starting! Have fun! :)");
 							for (var i = 0; i < data.forestCards.length; i++) {
-								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", 0.35, 0.35, false);
+								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", 0.35, 0.35, false, "black");
 							}
 							for (var i = 0; i < data.itemCards.length; i++) {
-								window.game.loadCard("item/" + data.itemCards[i], "back_item.jpg", 0.45, 0.35, false);
+								window.game.loadCard("item/" + data.itemCards[i], "back_item.jpg", 0.45, 0.35, false, "black");
 							}
 							for (var i = 0; i < data.skillCards.length; i++) {
-								window.game.loadCard("skill/" + data.skillCards[i], "back_skill.jpg", 0.35, 0.65, false);
+								window.game.loadCard("skill/" + data.skillCards[i], "back_skill.jpg", 0.35, 0.65, false, "black");
 							}
 							for (var i = 0; i < data.mountainCards.length; i++) {
-								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", 0.45, 0.65, false);
+								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", 0.45, 0.65, false, "black");
 							}
+							window.game.loadCard("discard_forest.jpg", null, 0.25, 0.35, true, "white");
+							window.game.loadCard("discard_item.jpg", null, 0.55, 0.35, true, "white");
+							window.game.loadCard("discard_skill.jpg", null, 0.25, 0.65, true, "white");
+							window.game.loadCard("discard_mountain.jpg", null, 0.55, 0.65, true, "white");
 						}
 					}
 
@@ -133,7 +138,7 @@ window.game = {
 
 	loadCharacterToChoose: function(charName, x, y) {
 
-		var card = this.loadCard("characters/" + charName + ".jpg", null, x, y, true);
+		var card = this.loadCard("characters/" + charName + ".jpg", null, x, y, true, "black");
 		this.cards.push(card);
 
 		card.eventTarget.addEventListener("click", function(e) {
@@ -162,6 +167,7 @@ window.game = {
 		bigCardImg.style.display = "block";
 		var bigCardDiv = document.createElement("div");
 		var bigCardInnerDiv = document.createElement("div");
+		this.bigCardInnerDiv = bigCardInnerDiv;
 		bigCardInnerDiv.style.position = "absolute";
 		bigCardInnerDiv.style.top = "0pt";
 		bigCardInnerDiv.style.left = "0pt";
@@ -178,7 +184,7 @@ window.game = {
 		this.gameArea.appendChild(bigCardDiv);
 	},
 
-	loadCard: function(imgPath, backImgPath, x, y, flippedUp) {
+	loadCard: function(imgPath, backImgPath, x, y, flippedUp, frameColor) {
 
 		// if the card we are loading has no backside, just use the front side as backside ;)
 		if (backImgPath == null) {
@@ -241,7 +247,7 @@ window.game = {
 		innerDiv.style.left = "0pt";
 		innerDiv.style.height = "100%";
 		innerDiv.style.width = "100%";
-		innerDiv.style.boxShadow = "inset 0pt 0pt 5pt 5pt black";
+		innerDiv.style.boxShadow = "inset 0pt 0pt 5pt 5pt " + frameColor;
 		innerDiv.style.borderRadius = "8pt";
 		innerDiv.addEventListener("mouseover", function(e) {
 			if (card.flippedUp) {
@@ -249,6 +255,7 @@ window.game = {
 			} else {
 				window.game.bigCardImg.src = backImgPath;
 			}
+			window.game.bigCardInnerDiv.style.boxShadow = "inset 0pt 0pt 10pt 10pt " + frameColor;
 		}, false);
 		card.eventTarget = innerDiv;
 
