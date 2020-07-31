@@ -194,6 +194,8 @@ window.game = {
 			eventTarget: null,
 			// the DOM element that we should target to remove this card again
 			removalTarget: null,
+			// is this card currently flipped up or down?
+			flippedUp: flippedUp,
 		};
 		this.ids++;
 
@@ -242,7 +244,11 @@ window.game = {
 		innerDiv.style.boxShadow = "inset 0pt 0pt 5pt 5pt black";
 		innerDiv.style.borderRadius = "8pt";
 		innerDiv.addEventListener("mouseover", function(e) {
-			window.game.bigCardImg.src = imgPath;
+			if (card.flippedUp) {
+				window.game.bigCardImg.src = imgPath;
+			} else {
+				window.game.bigCardImg.src = backImgPath;
+			}
 		}, false);
 		card.eventTarget = innerDiv;
 
