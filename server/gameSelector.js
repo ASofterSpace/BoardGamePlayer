@@ -83,7 +83,7 @@ window.game = {
 					for (var d = 0; d < dataArray.length; d++) {
 						var data = dataArray[d];
 						if (data.action == "playerJoined") {
-							window.game.println(data.name + " joined you! :)");
+							window.game.println(data.name + " joined you!");
 						}
 						if (data.action == "playerList") {
 							var playersStr = "";
@@ -93,6 +93,21 @@ window.game = {
 								sep = ", ";
 							}
 							window.game.println("So far, these fine people are playing: " + playersStr);
+						}
+						if (data.action == "start") {
+							window.game.println("Aaand the game is starting! Have fun! :)");
+							for (var i = 0; i < data.forestCards.length; i++) {
+								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", 0.35, 0.35, false);
+							}
+							for (var i = 0; i < data.itemCards.length; i++) {
+								window.game.loadCard("item/" + data.itemCards[i], "back_item.jpg", 0.45, 0.35, false);
+							}
+							for (var i = 0; i < data.skillCards.length; i++) {
+								window.game.loadCard("skill/" + data.skillCards[i], "back_skill.jpg", 0.35, 0.65, false);
+							}
+							for (var i = 0; i < data.mountainCards.length; i++) {
+								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", 0.45, 0.65, false);
+							}
 						}
 					}
 
@@ -118,12 +133,12 @@ window.game = {
 
 	loadCharacterToChoose: function(charName, x, y) {
 
-		var card = this.loadCard(this.folder + "characters/" + charName + ".jpg", x, y);
+		var card = this.loadCard("characters/" + charName + ".jpg", null, x, y, true);
 		this.cards.push(card);
 
 		card.eventTarget.addEventListener("click", function(e) {
 
-			window.game.textDiv.innerHTML = "You chose well! Now let's wait for the others...";
+			window.game.println("You chose well! Now let's wait for the others...");
 
 			for (var i = 0; i < window.game.cards.length; i++) {
 				window.game.cards[i].removalTarget.style.display = "none";
@@ -163,7 +178,15 @@ window.game = {
 		this.gameArea.appendChild(bigCardDiv);
 	},
 
-	loadCard: function(imgPath, x, y) {
+	loadCard: function(imgPath, backImgPath, x, y, flippedUp) {
+
+		// if the card we are loading has no backside, just use the front side as backside ;)
+		if (backImgPath == null) {
+			backImgPath = imgPath;
+		}
+
+		imgPath = this.folder + imgPath;
+		backImgPath = this.folder + backImgPath;
 
 		var card = {
 			id: this.ids,
@@ -188,7 +211,22 @@ window.game = {
 		img.style.width = imgWidth + "px";
 		img.style.borderRadius = "8pt";
 		// this line removes the whitespace below the image
-		img.style.display = "block";
+		if (flippedUp) {
+			img.style.display = "block";
+		} else {
+			img.style.display = "none";
+		}
+
+		var backImg = document.createElement("img");
+		backImg.src = backImgPath;
+		backImg.id = "cardBack" + card.id;
+		backImg.style.width = imgWidth + "px";
+		backImg.style.borderRadius = "8pt";
+		if (flippedUp) {
+			backImg.style.display = "none";
+		} else {
+			backImg.style.display = "block";
+		}
 
 		div.style.position = "absolute";
 		div.style.top = ((this.height * y) - (imgHeight / 2)) + "px";
@@ -209,6 +247,7 @@ window.game = {
 		card.eventTarget = innerDiv;
 
 		div.appendChild(img);
+		div.appendChild(backImg);
 		div.appendChild(innerDiv);
 		this.gameArea.appendChild(div);
 

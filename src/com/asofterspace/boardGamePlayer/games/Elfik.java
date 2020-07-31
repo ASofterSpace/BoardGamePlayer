@@ -4,10 +4,14 @@
  */
 package com.asofterspace.boardGamePlayer.games;
 
+import com.asofterspace.toolbox.io.Directory;
+import com.asofterspace.toolbox.io.File;
 import com.asofterspace.toolbox.utils.Record;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 
 public class Elfik {
@@ -15,6 +19,8 @@ public class Elfik {
 	private static int playerNum = 0;
 
 	private static List<ElfikPlayer> players = new ArrayList<>();
+
+	private static Random rand = new Random();
 
 
 	// returns the token that identifies the player
@@ -35,6 +41,17 @@ public class Elfik {
 		return players;
 	}
 
+	public static boolean allPlayersChoseChars() {
+
+		for (ElfikPlayer player : players) {
+			if (player.getCharName() == null) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public static void sendMsgToPlayersExcept(Record msg, Player doNotSendTo) {
 		for (Player player : players) {
 			if (!doNotSendTo.equals(player)) {
@@ -43,8 +60,47 @@ public class Elfik {
 		}
 	}
 
+	public static void sendMsgToPlayers(Record msg) {
+		for (Player player : players) {
+			player.addMsg(msg);
+		}
+	}
+
 	public static void sendMsgToPlayer(Record msg, Player sendTo) {
 		sendTo.addMsg(msg);
+	}
+
+	private static List<String> getShuffledStack(String stackName) {
+
+		boolean recursively = true;
+		Directory dir = new Directory("deployed/games/elfik/" + stackName);
+		List<File> cards = dir.getAllFiles(recursively);
+
+		List<String> cardNames = new ArrayList<>();
+		for (File card : cards) {
+			cardNames.add(card.getLocalFilename());
+		}
+
+		Collections.shuffle(cardNames, rand);
+
+		return cardNames;
+	}
+
+	public static void startGame() {
+
+		List<String> forestCardNames = getShuffledStack("forest");
+		List<String> itemCardNames = getShuffledStack("item");
+		List<String> skillCardNames = getShuffledStack("skill");
+		List<String> mountainCardNames = getShuffledStack("mountain");
+
+		Record msg = Record.emptyObject();
+		msg.set("action", "start");
+		msg.set("forestCards", forestCardNames);
+		msg.set("itemCards", itemCardNames);
+		msg.set("skillCards", skillCardNames);
+		msg.set("mountainCards", mountainCardNames);
+
+		sendMsgToPlayers(msg);
 	}
 
 }

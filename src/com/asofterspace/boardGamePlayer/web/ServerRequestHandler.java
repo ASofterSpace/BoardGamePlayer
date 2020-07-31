@@ -121,8 +121,10 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 							ElfikPlayer elfikPlayer = (ElfikPlayer) player;
 							switch (action.getString("action")) {
 								case "chooseCharacter":
-									elfikPlayer.setCharName(json.getString("charName"));
-									Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"chooseCharacter\", \"charName\": \"" + json.getString("charName") + "\", \"playerId\": " + player.getId() + ", \"playerName\": \"" + player.getName() + "\"}"), player);
+									elfikPlayer.setCharName(action.getString("charName"));
+									if (Elfik.allPlayersChoseChars()) {
+										Elfik.startGame();
+									}
 									break;
 							}
 						}
