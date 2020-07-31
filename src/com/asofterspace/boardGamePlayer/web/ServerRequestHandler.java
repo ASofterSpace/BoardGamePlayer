@@ -21,6 +21,7 @@ import com.asofterspace.toolbox.web.WebServerRequestHandler;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
 
 
 public class ServerRequestHandler extends WebServerRequestHandler {
@@ -92,8 +93,8 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 					switch (json.getString("gameName")) {
 						case "elfik":
 							Player player = Elfik.addPlayer(json.getString("playerName"));
-							answer = new WebServerAnswerInJson("{\"token\": " + player.getToken() + "}");
-							Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"playerJoined\", \"playerId\": " + player.getId() + ", \"playerName\": \"" + player.getName() + "\"}"), player);
+							answer = new WebServerAnswerInJson("{\"token\": \"" + player.getToken() + "\"}");
+							Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"playerJoined\", \"id\": " + player.getId() + ", \"name\": \"" + player.getName() + "\"}"), player);
 							String playerListStr = "";
 							String sep = "";
 							for (Player curPlayer : Elfik.getPlayers()) {
@@ -109,25 +110,24 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 					break;
 
 				case "/commLoop":
-					if (json.getLength() > 0) {
-						for (int i = 0; i < json.getLength(); i++) {
-							Record action = json.get(i);
-							Player player = GameCtrl.getPlayer(action.getString("token"));
-							if (player == null) {
-								continue;
+					Player player = GameCtrl.getPlayer(json.getString("token"));
+					if (player == null) {
+						respond(401);
+						return;
+					}
+					List<Record> actions = json.getArray("actions");
+					for (Record action : actions) {
+						if (player instanceof ElfikPlayer) {
+							ElfikPlayer elfikPlayer = (ElfikPlayer) player;
+							switch (action.getString("action")) {
+								case "chooseCharacter":
+									elfikPlayer.setCharName(json.getString("charName"));
+									Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"chooseCharacter\", \"charName\": \"" + json.getString("charName") + "\", \"playerId\": " + player.getId() + ", \"playerName\": \"" + player.getName() + "\"}"), player);
+									break;
 							}
-							if (player instanceof ElfikPlayer) {
-								ElfikPlayer elfikPlayer = (ElfikPlayer) player;
-								switch (action.getString("action")) {
-									case "chooseCharacter":
-										elfikPlayer.setCharName(json.getString("charName"));
-										Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"chooseCharacter\", \"charName\": \"" + json.getString("charName") + "\", \"playerId\": " + player.getId() + ", \"playerName\": \"" + player.getName() + "\"}"), player);
-										break;
-								}
-							}
-							answer = new WebServerAnswerInJson(player.flushMsgs());
 						}
 					}
+					answer = new WebServerAnswerInJson(player.flushMsgs());
 					break;
 
 				default:
@@ -137,6 +137,7 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 
 		} catch (JsonParseException e) {
 			respond(403);
+			return;
 		}
 
 		if (answer == null) {

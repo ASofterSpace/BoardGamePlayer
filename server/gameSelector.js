@@ -15,6 +15,7 @@ window.game = {
 	ids: 0,
 	bigCardImg: null,
 	textDiv: null,
+	textDivText: "",
 	rulesDiv: null,
 
 	// messages outgoing to the server
@@ -29,7 +30,8 @@ window.game = {
 		textDiv.style.position = "absolute";
 		textDiv.style.top = "8pt";
 		textDiv.style.left = "8pt";
-		textDiv.innerHTML = "Choose which character you would like to play...";
+		this.textDivText = "Choose which character you would like to play...";
+		textDiv.innerHTML = this.textDivText;
 		this.gameArea.append(textDiv);
 
 		var rulesDiv = document.createElement("div");
@@ -64,9 +66,10 @@ window.game = {
 			var curMsgs = window.game.msgsOut;
 			window.game.msgsOut = [];
 
-			for (var i = 0; i < curMsgs.length; i++) {
-				curMsgs[i].token = window.game.token;
-			}
+			var loopData = {
+				token: window.game.token,
+				actions: curMsgs,
+			};
 
 			var request = new XMLHttpRequest();
 			request.open("POST", "commLoop", false);
@@ -75,19 +78,42 @@ window.game = {
 			request.onreadystatechange = function() {
 				if (request.readyState == 4 && request.status == 200) {
 					console.log("commLoop response:");
-					console.log(JSON.parse(request.response));
+					var dataArray = JSON.parse(request.response);
+					console.log(dataArray);
+					for (var d = 0; d < dataArray.length; d++) {
+						var data = dataArray[d];
+						if (data.action == "playerJoined") {
+							window.game.println(data.name + " joined you! :)");
+						}
+						if (data.action == "playerList") {
+							var playersStr = "";
+							var sep = "";
+							for (var i = 0; i < data.players.length; i++) {
+								playersStr += sep + data.players[i].name;
+								sep = ", ";
+							}
+							window.game.println("So far, these fine people are playing: " + playersStr);
+						}
+					}
+
 					// TODO actually handle the response - that is, the server informing us about all the things that are happening
 				}
 			}
 
-			request.send(JSON.stringify(curMsgs));
+			request.send(JSON.stringify(loopData));
 
 		}, 2000);
 	},
 
 	sendToServer: function(data) {
 
-		window.game.msgsOut.push(data);
+		this.msgsOut.push(data);
+	},
+
+	println: function(str) {
+
+		this.textDivText = str + "<br>" + this.textDivText;
+		this.textDiv.innerHTML = this.textDivText;
 	},
 
 	loadCharacterToChoose: function(charName, x, y) {
