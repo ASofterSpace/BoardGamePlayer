@@ -11,6 +11,7 @@ window.game = {
 	ids: 0,
 	bigCardImg: null,
 	textDiv: null,
+	rulesDiv: null,
 
 	startElfik: function() {
 
@@ -24,11 +25,39 @@ window.game = {
 		textDiv.innerHTML = "Choose which character you would like to play...";
 		this.gameArea.append(textDiv);
 
+		var rulesDiv = document.createElement("div");
+		this.rulesDiv = rulesDiv;
+		rulesDiv.style.position = "absolute";
+		rulesDiv.style.bottom = "8pt";
+		rulesDiv.style.right = "8pt";
+		rulesDiv.innerHTML = "<a href=\"games/elfik/rules.pdf\" target=\"_blank\">Rule Book</a>";
+		this.gameArea.append(rulesDiv);
+
 		this.loadCharacterToChoose("cendre", 0.55, 0.35);
-		this.loadCharacterToChoose("eloen", 0.45, 0.35);
-		this.loadCharacterToChoose("elrun", 0.35, 0.65);
-		this.loadCharacterToChoose("terkan", 0.25, 0.65);
 		this.loadCharacterToChoose("rayin", 0.55, 0.65);
+		this.loadCharacterToChoose("eloen", 0.45, 0.35);
+		this.loadCharacterToChoose("zelfirden", 0.45, 0.65);
+		this.loadCharacterToChoose("ludmila", 0.35, 0.35);
+		this.loadCharacterToChoose("elrun", 0.35, 0.65);
+		this.loadCharacterToChoose("shaya", 0.25, 0.35);
+		this.loadCharacterToChoose("terkan", 0.25, 0.65);
+
+		// we start the communication loop with the server,
+		// which will be our main way of interacting with it from now on
+		this.startServerCommLoop();
+	},
+
+	startServerCommLoop: function() {
+
+		// every two seconds we tell the server what is going on, and we hear
+		// from it what is going on with the other players
+		window.setInterval(function() {
+
+			// TODO - put character choice also in here, and waiting for everyone else to choose their characters, and the actual playing of the game!
+
+			// TODO - do this with token that we get from the server (can just be a uuid for now that we get when we first tell it we want to play this game!)
+
+		}, 2000);
 	},
 
 	loadCharacterToChoose: function(charName, x, y) {
