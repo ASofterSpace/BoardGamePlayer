@@ -4,6 +4,8 @@
  */
 package com.asofterspace.boardGamePlayer.games;
 
+import com.asofterspace.toolbox.utils.Record;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,27 +14,37 @@ public class Elfik {
 
 	private static int playerNum = 0;
 
-	private static List<Player> players = new ArrayList<>();
+	private static List<ElfikPlayer> players = new ArrayList<>();
 
 
-	public static int addPlayer(String playerName) {
+	// returns the token that identifies the player
+	public static ElfikPlayer addPlayer(String playerName) {
 
-		Player player = new Player(playerNum, playerName);
+		ElfikPlayer player = new ElfikPlayer(playerNum, playerName);
 
 		players.add(player);
 
 		playerNum++;
 
-		return player.getId();
+		GameCtrl.addPlayer(player);
+
+		return player;
 	}
 
-	public static void setCharacter(int playerId, String charName) {
+	public static List<ElfikPlayer> getPlayers() {
+		return players;
+	}
 
-		for (int i = 0; i < playerNum; i++) {
-			if (players.get(i).getId() == playerId) {
-				players.get(i).setCharName(charName);
+	public static void sendMsgToPlayersExcept(Record msg, Player doNotSendTo) {
+		for (Player player : players) {
+			if (!doNotSendTo.equals(player)) {
+				player.addMsg(msg);
 			}
 		}
+	}
+
+	public static void sendMsgToPlayer(Record msg, Player sendTo) {
+		sendTo.addMsg(msg);
 	}
 
 }

@@ -2,7 +2,11 @@ window.game = {
 
 	name: "",
 	playerName: "",
-	playerId: 0,
+
+	// a token that we got from the backend with which we authenticate our requests and are uniquely
+	// identifiable, including our id and the game we are playing
+	token: "",
+
 	folder: "",
 	cards: [],
 	gameArea: null,
@@ -12,6 +16,9 @@ window.game = {
 	bigCardImg: null,
 	textDiv: null,
 	rulesDiv: null,
+
+	// messages outgoing to the server
+	msgsOut: [],
 
 	startElfik: function() {
 
@@ -53,11 +60,34 @@ window.game = {
 		// from it what is going on with the other players
 		window.setInterval(function() {
 
-			// TODO - put character choice also in here, and waiting for everyone else to choose their characters, and the actual playing of the game!
+			// TODO synchronize / atomicize the next two lines, unless that is alread guaranteed by javascript itself...
+			var curMsgs = window.game.msgsOut;
+			window.game.msgsOut = [];
 
-			// TODO - do this with token that we get from the server (can just be a uuid for now that we get when we first tell it we want to play this game!)
+			for (var i = 0; i < curMsgs.length; i++) {
+				curMsgs[i].token = window.game.token;
+			}
+
+			var request = new XMLHttpRequest();
+			request.open("POST", "commLoop", false);
+			request.setRequestHeader("Content-Type", "application/json");
+
+			request.onreadystatechange = function() {
+				if (request.readyState == 4 && request.status == 200) {
+					console.log("commLoop response:");
+					console.log(JSON.parse(request.response));
+					// TODO actually handle the response - that is, the server informing us about all the things that are happening
+				}
+			}
+
+			request.send(JSON.stringify(curMsgs));
 
 		}, 2000);
+	},
+
+	sendToServer: function(data) {
+
+		window.game.msgsOut.push(data);
 	},
 
 	loadCharacterToChoose: function(charName, x, y) {
@@ -75,23 +105,7 @@ window.game = {
 
 			window.game.cards = [];
 
-			var request = new XMLHttpRequest();
-			request.open("POST", "chooseCharacter", false);
-			request.setRequestHeader("Content-Type", "application/json");
-
-			request.onreadystatechange = function() {
-				if (request.readyState == 4 && request.status == 200) {
-					// TODO :: start the game loop (in which we call the server once a second asking for updates)
-				}
-			}
-
-			var data = {
-				playerId: window.game.playerId,
-				gameName: window.game.name,
-				charName: charName,
-			};
-
-			request.send(JSON.stringify(data));
+			window.game.sendToServer({action: "chooseCharacter", charName: charName});
 
 		}, false);
 	},
@@ -192,7 +206,7 @@ window.startGame = function(game) {
 	request.onreadystatechange = function() {
 		if (request.readyState == 4 && request.status == 200) {
 			var result = JSON.parse(request.response);
-			window.game.playerId = result.playerId;
+			window.game.token = result.token;
 			switch (window.game.name) {
 				case 'elfik':
 					window.game.startElfik();

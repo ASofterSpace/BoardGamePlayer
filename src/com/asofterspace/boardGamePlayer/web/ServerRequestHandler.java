@@ -6,6 +6,9 @@ package com.asofterspace.boardGamePlayer.web;
 
 import com.asofterspace.boardGamePlayer.Database;
 import com.asofterspace.boardGamePlayer.games.Elfik;
+import com.asofterspace.boardGamePlayer.games.ElfikPlayer;
+import com.asofterspace.boardGamePlayer.games.GameCtrl;
+import com.asofterspace.boardGamePlayer.games.Player;
 import com.asofterspace.toolbox.io.Directory;
 import com.asofterspace.toolbox.io.File;
 import com.asofterspace.toolbox.io.JSON;
@@ -55,61 +58,85 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 
 		WebServerAnswer answer = null;
 
-		switch (fileLocation) {
+		try {
 
-			/*
-			case "/saveLostItem":
-				db.saveLostItem(json);
-				break;
+			switch (fileLocation) {
 
-			case "/saveFoundItem":
-				db.saveFoundItem(json);
-				break;
+				/*
+				case "/saveLostItem":
+					db.saveLostItem(json);
+					break;
 
-			case "/items":
-				Record dbAnswer = db.getItems(json);
-				if (dbAnswer == null) {
-					respond(400);
+				case "/saveFoundItem":
+					db.saveFoundItem(json);
+					break;
+
+				case "/items":
+					Record dbAnswer = db.getItems(json);
+					if (dbAnswer == null) {
+						respond(400);
+						return;
+					}
+					JSON jsonAnswer = new JSON(dbAnswer);
+					answer = new WebServerAnswerInJson(jsonAnswer);
+					break;
+				*/
+
+				case "/availableGames":
+					Record games = Record.emptyArray();
+					games.append("Elfik");
+					answer = new WebServerAnswerInJson(games);
+					break;
+
+				case "/startGame":
+					switch (json.getString("gameName")) {
+						case "elfik":
+							Player player = Elfik.addPlayer(json.getString("playerName"));
+							answer = new WebServerAnswerInJson("{\"token\": " + player.getToken() + "}");
+							Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"playerJoined\", \"playerId\": " + player.getId() + ", \"playerName\": \"" + player.getName() + "\"}"), player);
+							String playerListStr = "";
+							String sep = "";
+							for (Player curPlayer : Elfik.getPlayers()) {
+								playerListStr += sep + "{\"id\": " + curPlayer.getId() + ", \"name\": \"" + curPlayer.getName() + "\"}";
+								sep = ",";
+							}
+							Elfik.sendMsgToPlayer(new JSON("{\"action\": \"playerList\", \"players\": [" + playerListStr + "]}"), player);
+							break;
+						default:
+							respond(400);
+							break;
+					}
+					break;
+
+				case "/commLoop":
+					if (json.getLength() > 0) {
+						for (int i = 0; i < json.getLength(); i++) {
+							Record action = json.get(i);
+							Player player = GameCtrl.getPlayer(action.getString("token"));
+							if (player == null) {
+								continue;
+							}
+							if (player instanceof ElfikPlayer) {
+								ElfikPlayer elfikPlayer = (ElfikPlayer) player;
+								switch (action.getString("action")) {
+									case "chooseCharacter":
+										elfikPlayer.setCharName(json.getString("charName"));
+										Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"chooseCharacter\", \"charName\": \"" + json.getString("charName") + "\", \"playerId\": " + player.getId() + ", \"playerName\": \"" + player.getName() + "\"}"), player);
+										break;
+								}
+							}
+							answer = new WebServerAnswerInJson(player.flushMsgs());
+						}
+					}
+					break;
+
+				default:
+					respond(404);
 					return;
-				}
-				JSON jsonAnswer = new JSON(dbAnswer);
-				answer = new WebServerAnswerInJson(jsonAnswer);
-				break;
-			*/
+			}
 
-			case "/availableGames":
-				Record games = Record.emptyArray();
-				games.append("Elfik");
-				answer = new WebServerAnswerInJson(games);
-				break;
-
-			case "/startGame":
-				switch (json.getString("gameName")) {
-					case "elfik":
-						int playerId = Elfik.addPlayer(json.getString("playerName"));
-						answer = new WebServerAnswerInJson("{\"playerId\": " + playerId + "}");
-						break;
-					default:
-						respond(400);
-						break;
-				}
-				break;
-
-			case "/chooseCharacter":
-				switch (json.getString("gameName")) {
-					case "elfik":
-						int playerId = json.getInteger("playerId");
-						Elfik.setCharacter(playerId, json.getString("charName"));
-						break;
-					default:
-						respond(400);
-						break;
-				}
-				break;
-
-			default:
-				respond(404);
-				return;
+		} catch (JsonParseException e) {
+			respond(403);
 		}
 
 		if (answer == null) {
