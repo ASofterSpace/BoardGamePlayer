@@ -264,6 +264,42 @@ window.game = {
 		div.appendChild(innerDiv);
 		this.gameArea.appendChild(div);
 
+		if (imgPath.startsWith("forest/") || imgPath.startsWith("skill/") || imgPath.startsWith("item/") || imgPath.startsWith("mountain/")) {
+
+			card.eventTarget.addEventListener("click", function(e) {
+
+				// check what kind of a card we have, based on its name...
+				var kind = "ephemere";
+				if (imgPath.startsWith("forest/forest_inst_")) {
+					kind = "instant";
+				}
+				if (imgPath.startsWith("item/item_inst_")) {
+					kind = "instant";
+				}
+				if (imgPath.startsWith("item/item_permanent_")) {
+					kind = "permanent";
+				}
+				if (imgPath.startsWith("mountain/mountain_inst_")) {
+					kind = "instant";
+				}
+				if (imgPath.startsWith("mountain/mountain_permanent_")) {
+					kind = "permanent";
+				}
+
+				// ... now, based on what card we have, do something with it!
+
+				// instant goes in the middle and gets turned face up...
+				// TODO
+
+				// permanent goes in front of you and gets turned face up...
+				// TODO
+
+				// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
+				// TODO
+
+			}, false);
+		}
+
 		return card;
 	},
 
