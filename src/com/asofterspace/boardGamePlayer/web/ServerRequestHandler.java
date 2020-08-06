@@ -93,7 +93,7 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 					switch (json.getString("gameName")) {
 						case "elfik":
 							Player player = Elfik.addPlayer(json.getString("playerName"));
-							answer = new WebServerAnswerInJson("{\"token\": \"" + player.getToken() + "\"}");
+							answer = new WebServerAnswerInJson("{\"token\": \"" + player.getToken() + "\", \"id\": " + player.getId() + "}");
 							Elfik.sendMsgToPlayersExcept(new JSON("{\"action\": \"playerJoined\", \"id\": " + player.getId() + ", \"name\": \"" + player.getName() + "\"}"), player);
 							String playerListStr = "";
 							String sep = "";

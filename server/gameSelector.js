@@ -2,6 +2,7 @@ window.game = {
 
 	name: "",
 	playerName: "",
+	playerId: 0,
 
 	// a token that we got from the backend with which we authenticate our requests and are uniquely
 	// identifiable, including our id and the game we are playing
@@ -22,6 +23,12 @@ window.game = {
 
 	// messages outgoing to the server
 	msgsOut: [],
+
+	// the hands of all players as array of arrays of card ids
+	hands: [],
+
+	// all the cards that we have
+	cards: [],
 
 	startElfik: function() {
 
@@ -137,6 +144,15 @@ window.game = {
 		this.textDiv.innerHTML = this.textDivText;
 	},
 
+	getCard: function(cardId) {
+		for (var i = 0; i < this.cards.length; i++) {
+			if (this.cards[i].id == cardId) {
+				return this.cards[i];
+			}
+		}
+		return null;
+	},
+
 	loadCharacterToChoose: function(charName, x, y) {
 
 		var card = this.loadCard("characters/" + charName + ".jpg", null, x, y, true, "black");
@@ -241,6 +257,19 @@ window.game = {
 				this.div.style.top = ((window.game.height * y) - (this.imgHeight / 2)) + "px";
 				this.div.style.left = ((window.game.width * x) - (this.imgWidth / 2)) + "px";
 				// TODO :: tell the server about this
+			},
+			putOntoHand: function(playerId) {
+				if (!window.game.hands[playerId]) {
+					window.game.hands[playerId] = [];
+				}
+				window.game.hands[playerId].push(this.id);
+				var len = window.game.hands[playerId].length;
+				for (var i = 0; i < len; i++) {
+					var curCard = window.game.getCard(window.game.hands[playerId][i]);
+					if (curCard != null) {
+						curCard.moveTo(0.4 + ((i - (len / 2)) / 10), 0.95);
+					}
+				}
 			},
 		};
 		this.ids++;
@@ -359,6 +388,7 @@ window.game = {
 						case "ephemere":
 							card.location = "hand";
 							card.moveTo(0.4, 0.95);
+							card.putOntoHand(window.game.playerId);
 							break;
 
 						// permanent goes in front of you and gets turned face up...
@@ -403,6 +433,7 @@ window.startGame = function(game) {
 		if (request.readyState == 4 && request.status == 200) {
 			var result = JSON.parse(request.response);
 			window.game.token = result.token;
+			window.game.playerId = result.id;
 			switch (window.game.name) {
 				case 'elfik':
 					window.game.startElfik();
