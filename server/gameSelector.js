@@ -259,6 +259,7 @@ window.game = {
 				// TODO :: tell the server about this
 			},
 			putOntoHand: function(playerId) {
+				debugLog("[card " + this.id + "] putOntoHand(" + playerId + ")");
 				if (!window.game.hands[playerId]) {
 					window.game.hands[playerId] = [];
 				}
@@ -273,6 +274,7 @@ window.game = {
 			},
 		};
 		this.ids++;
+		this.cards.push(card);
 
 		// we draw the image on the canvas with a certain size and positioned so that the center of the image is
 		// at the (x,y) position of the visible board game area, where x and y are on a scale from 0 to 1
