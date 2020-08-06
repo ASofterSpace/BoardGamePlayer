@@ -13,6 +13,7 @@ window.game = {
 	width: 0,
 	height: 0,
 	ids: 0,
+	zindexes: 0,
 	bigCardImg: null,
 	bigCardInnerDiv: null,
 	textDiv: null,
@@ -191,17 +192,56 @@ window.game = {
 			backImgPath = imgPath;
 		}
 
-		imgPath = this.folder + imgPath;
-		backImgPath = this.folder + backImgPath;
-
 		var card = {
 			id: this.ids,
 			// the DOM element that we should target with events to arrive at this card
 			eventTarget: null,
 			// the DOM element that we should target to remove this card again
 			removalTarget: null,
+			// the image that shows the front of this card
+			img: null,
+			backImg: null,
+			imgHeight: 0,
+			imgWidth: 0,
+			// the cardHolder div
+			div: null,
 			// is this card currently flipped up or down?
+			// (if it is in the player's hand, it is seen as flippedUp FOR THAT PLAYER even when flippedUp is false)
 			flippedUp: flippedUp,
+			// where is this card currently?
+			// "deck", "hand", "table", "discard"
+			location: "deck",
+			// which player has this card on their hand, if it is on someone's hand?
+			handPlayerId: null,
+			// which deck or discard pile does this card go into? (forest, item, skill, mountain)
+			origin: null,
+			// which kind of a card is this (ephemere, instant, permanent)?
+			kind: null,
+
+			turnUp: function() {
+				debugLog("[card " + this.id + "] turnUp");
+				this.div.style.zIndex = window.game.zindexes++;
+				this.flippedUp = true;
+				this.img.style.display = "block";
+				this.backImg.style.display = "none";
+				// TODO :: tell the server about this
+			},
+			turnDown: function() {
+				debugLog("[card " + this.id + "] turnDown");
+				this.div.style.zIndex = window.game.zindexes++;
+				this.flippedUp = false;
+				this.img.style.display = "none";
+				this.backImg.style.display = "block";
+				// TODO :: tell the server about this
+			},
+			moveTo: function(x, y) {
+				debugLog("[card " + this.id + "] moveTo(" + x + ", " + y + ")");
+				this.div.style.zIndex = window.game.zindexes++;
+				// TODO :: animate this movement
+				this.div.style.top = ((window.game.height * y) - (this.imgHeight / 2)) + "px";
+				this.div.style.left = ((window.game.width * x) - (this.imgWidth / 2)) + "px";
+				// TODO :: tell the server about this
+			},
 		};
 		this.ids++;
 
@@ -209,10 +249,11 @@ window.game = {
 		// at the (x,y) position of the visible board game area, where x and y are on a scale from 0 to 1
 		var div = document.createElement("div");
 		div.id = "cardHolder" + card.id;
+		div.style.zIndex = this.zindexes++;
 		card.removalTarget = div;
 
 		var img = document.createElement("img");
-		img.src = imgPath;
+		img.src = this.folder + imgPath;
 		img.id = "cardFront" + card.id;
 		var imgWidth = (this.width / 12);
 		var imgHeight = 1.53846 * imgWidth;
@@ -224,9 +265,12 @@ window.game = {
 		} else {
 			img.style.display = "none";
 		}
+		card.img = img;
+		card.imgHeight = imgHeight;
+		card.imgWidth = imgWidth;
 
 		var backImg = document.createElement("img");
-		backImg.src = backImgPath;
+		backImg.src = this.folder + backImgPath;
 		backImg.id = "cardBack" + card.id;
 		backImg.style.width = imgWidth + "px";
 		backImg.style.borderRadius = "8pt";
@@ -235,11 +279,13 @@ window.game = {
 		} else {
 			backImg.style.display = "block";
 		}
+		card.backImg = backImg;
 
 		div.style.position = "absolute";
 		div.style.top = ((this.height * y) - (imgHeight / 2)) + "px";
 		div.style.left = ((this.width * x) - (imgWidth / 2)) + "px";
 		div.style.borderRadius = "8pt";
+		card.div = div;
 
 		var innerDiv = document.createElement("div");
 		innerDiv.style.position = "absolute";
@@ -249,53 +295,89 @@ window.game = {
 		innerDiv.style.width = "100%";
 		innerDiv.style.boxShadow = "inset 0pt 0pt 5pt 5pt " + frameColor;
 		innerDiv.style.borderRadius = "8pt";
-		innerDiv.addEventListener("mouseover", function(e) {
+		card.eventTarget = innerDiv;
+		card.eventTarget.addEventListener("mouseover", function(e) {
 			if (card.flippedUp) {
-				window.game.bigCardImg.src = imgPath;
+				window.game.bigCardImg.src = window.game.folder + imgPath;
 			} else {
-				window.game.bigCardImg.src = backImgPath;
+				window.game.bigCardImg.src = window.game.folder + backImgPath;
 			}
 			window.game.bigCardInnerDiv.style.boxShadow = "inset 0pt 0pt 10pt 10pt " + frameColor;
 		}, false);
-		card.eventTarget = innerDiv;
 
 		div.appendChild(img);
 		div.appendChild(backImg);
 		div.appendChild(innerDiv);
 		this.gameArea.appendChild(div);
 
-		if (imgPath.startsWith("forest/") || imgPath.startsWith("skill/") || imgPath.startsWith("item/") || imgPath.startsWith("mountain/")) {
+		if (imgPath.startsWith("forest/") || imgPath.startsWith("item/") || imgPath.startsWith("skill/") || imgPath.startsWith("mountain/")) {
+
+			if (imgPath.startsWith("forest/")) {
+				card.origin = "forest";
+			}
+			if (imgPath.startsWith("item/")) {
+				card.origin = "item";
+			}
+			if (imgPath.startsWith("skill/")) {
+				card.origin = "skill";
+			}
+			if (imgPath.startsWith("mountain/")) {
+				card.origin = "mountain";
+			}
+
+			// check what kind of a card we have, based on its name...
+			card.kind = "ephemere";
+			if (imgPath.startsWith("forest/forest_inst_")) {
+				card.kind = "instant";
+			}
+			if (imgPath.startsWith("item/item_inst_")) {
+				card.kind = "instant";
+			}
+			if (imgPath.startsWith("item/item_permanent_")) {
+				card.kind = "permanent";
+			}
+			if (imgPath.startsWith("mountain/mountain_inst_")) {
+				card.kind = "instant";
+			}
+			if (imgPath.startsWith("mountain/mountain_permanent_")) {
+				card.kind = "permanent";
+			}
 
 			card.eventTarget.addEventListener("click", function(e) {
 
-				// check what kind of a card we have, based on its name...
-				var kind = "ephemere";
-				if (imgPath.startsWith("forest/forest_inst_")) {
-					kind = "instant";
-				}
-				if (imgPath.startsWith("item/item_inst_")) {
-					kind = "instant";
-				}
-				if (imgPath.startsWith("item/item_permanent_")) {
-					kind = "permanent";
-				}
-				if (imgPath.startsWith("mountain/mountain_inst_")) {
-					kind = "instant";
-				}
-				if (imgPath.startsWith("mountain/mountain_permanent_")) {
-					kind = "permanent";
+				debugLog("[card " + card + "] onClick");
+
+				// first of all, check where the card actually is
+
+				if (card.location == "deck") {
+
+					// ... now, based on what card we have, do something with it!
+
+					switch (card.kind) {
+
+						// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
+						case "ephemere":
+							card.location = "hand";
+							card.moveTo(0.4, 0.95);
+							break;
+
+						// permanent goes in front of you and gets turned face up...
+						case "permanent":
+							card.turnUp();
+							card.location = "table";
+							card.moveTo(0.4, 0.85);
+							break;
+
+						// instant goes in the middle and gets turned face up...
+						default:
+							card.turnUp();
+							card.location = "table";
+							card.moveTo(0.4, 0.5);
+							break;
+					}
 				}
 
-				// ... now, based on what card we have, do something with it!
-
-				// instant goes in the middle and gets turned face up...
-				// TODO
-
-				// permanent goes in front of you and gets turned face up...
-				// TODO
-
-				// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
-				// TODO
+				// TODO consider other locations
 
 			}, false);
 		}
@@ -348,4 +430,12 @@ window.startGame = function(game) {
 	window.game.width = window.game.gameArea.clientWidth;
 
 	request.send(JSON.stringify(data));
+};
+
+// enable optional debugging
+window.showDebugLog = true;
+window.debugLog = function(line) {
+	if (window.showDebugLog) {
+		console.log(line);
+	}
 };
