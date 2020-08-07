@@ -272,12 +272,14 @@ window.game = {
 				}
 				this.refreshCardFace();
 			},
-			refreshCardFace: function() {
-				var faceVisible = this.flippedUp;
+			isFaceVisible: function() {
 				if ((this.location == "hand") && (this.handPlayerId == window.game.playerId)) {
-					faceVisible = true;
+					return true;
 				}
-				if (faceVisible) {
+				return this.flippedUp;
+			},
+			refreshCardFace: function() {
+				if (this.isFaceVisible()) {
 					this.img.style.display = "block";
 					this.backImg.style.display = "none";
 				} else {
@@ -341,7 +343,7 @@ window.game = {
 		innerDiv.style.borderRadius = "8pt";
 		card.eventTarget = innerDiv;
 		card.eventTarget.addEventListener("mouseover", function(e) {
-			if (card.flippedUp) {
+			if (card.isFaceVisible()) {
 				window.game.bigCardImg.src = window.game.folder + imgPath;
 			} else {
 				window.game.bigCardImg.src = window.game.folder + backImgPath;
