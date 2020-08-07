@@ -238,16 +238,14 @@ window.game = {
 				debugLog("[card " + this.id + "] turnUp");
 				this.div.style.zIndex = window.game.zindexes++;
 				this.flippedUp = true;
-				this.img.style.display = "block";
-				this.backImg.style.display = "none";
+				this.refreshCardFace();
 				// TODO :: tell the server about this
 			},
 			turnDown: function() {
 				debugLog("[card " + this.id + "] turnDown");
 				this.div.style.zIndex = window.game.zindexes++;
 				this.flippedUp = false;
-				this.img.style.display = "none";
-				this.backImg.style.display = "block";
+				this.refreshCardFace();
 				// TODO :: tell the server about this
 			},
 			moveTo: function(x, y) {
@@ -260,6 +258,7 @@ window.game = {
 			},
 			putOntoHand: function(playerId) {
 				debugLog("[card " + this.id + "] putOntoHand(" + playerId + ")");
+				this.handPlayerId = playerId;
 				if (!window.game.hands[playerId]) {
 					window.game.hands[playerId] = [];
 				}
@@ -268,8 +267,22 @@ window.game = {
 				for (var i = 0; i < len; i++) {
 					var curCard = window.game.getCard(window.game.hands[playerId][i]);
 					if (curCard != null) {
-						curCard.moveTo(0.4 + ((i - (len / 2)) / 10), 0.95);
+						curCard.moveTo(0.4 + ((i - (len / 2)) / 50), 0.98 + Math.abs((i - (len / 2)) / 200));
 					}
+				}
+				this.refreshCardFace();
+			},
+			refreshCardFace: function() {
+				var faceVisible = this.flippedUp;
+				if ((this.location == "hand") && (this.handPlayerId == window.game.playerId)) {
+					faceVisible = true;
+				}
+				if (faceVisible) {
+					this.img.style.display = "block";
+					this.backImg.style.display = "none";
+				} else {
+					this.img.style.display = "none";
+					this.backImg.style.display = "block";
 				}
 			},
 		};
