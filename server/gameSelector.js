@@ -34,6 +34,9 @@ window.game = {
 	// all the cards that we have
 	cards: [],
 
+	// all the moves that are currently happening (objects containing cards and their targets)
+	moves: [],
+
 	startElfik: function() {
 
 		this.setupBoard();
@@ -67,6 +70,32 @@ window.game = {
 		// we start the communication loop with the server,
 		// which will be our main way of interacting with it from now on
 		this.startServerCommLoop();
+
+		this.startMoveLoop();
+	},
+
+	startMoveLoop: function() {
+
+		// every 50 ms, set the positions of cards that are currently moving around
+		window.setInterval(function() {
+			for (var i = window.game.moves.length - 1; i >= 0; i--) {
+				var move = window.game.moves[i];
+				var card = move.card;
+				var newX = (move.x + card.curX) / 2;
+				var newY = (move.y + card.curY) / 2;
+				if ((Math.abs(card.curX - newX) < 1) && (Math.abs(card.curY - newY) < 1)) {
+					card.curX = move.x;
+					card.curY = move.y;
+					// remove this move, as we have done the move by successfully moving to the target
+					window.game.moves.splice(i, 1);
+				} else {
+					card.curX = newX;
+					card.curY = newY;
+				}
+				card.div.style.left = card.curX + "px";
+				card.div.style.top = card.curY + "px";
+			}
+		}, 50);
 	},
 
 	startServerCommLoop: function() {
@@ -237,6 +266,9 @@ window.game = {
 			origin: null,
 			// which kind of a card is this (ephemere, instant, permanent)?
 			kind: null,
+			// current position
+			curX: x,
+			curY: y,
 
 			turnUp: function() {
 				debugLog("[card " + this.id + "] turnUp");
@@ -258,9 +290,18 @@ window.game = {
 				if (this.location == "hand") {
 					this.div.style.zIndex = window.game.zindexes + 1000000;
 				}
-				// TODO :: animate this movement
-				this.div.style.top = ((window.game.height * y) - (this.imgHeight / 2)) + "px";
-				this.div.style.left = ((window.game.width * x) - (this.imgWidth / 2)) + "px";
+				// we animate this movement by just adding the move to the moves array, where it will be picked up
+				// ... but first we remove this card's move if there is a previous move
+				for (var i = window.game.moves.length - 1; i >= 0; i--) {
+					if (window.game.moves[i].card.id == this.id) {
+						window.game.moves.splice(i, 1);
+					}
+				}
+				window.game.moves.push({
+					card: this,
+					x: ((window.game.width * x) - (this.imgWidth / 2)),
+					y: ((window.game.height * y) - (this.imgHeight / 2)),
+				});
 				// TODO :: tell the server about this
 			},
 			putOntoHand: function(playerId) {
@@ -335,8 +376,10 @@ window.game = {
 		card.backImg = backImg;
 
 		div.style.position = "absolute";
-		div.style.top = ((this.height * y) - (imgHeight / 2)) + "px";
-		div.style.left = ((this.width * x) - (imgWidth / 2)) + "px";
+		card.curY = ((this.height * y) - (imgHeight / 2));
+		card.curX = ((this.width * x) - (imgWidth / 2));
+		div.style.top = card.curY + "px";
+		div.style.left = card.curX + "px";
 		div.style.borderRadius = "8pt";
 		card.div = div;
 
@@ -411,7 +454,6 @@ window.game = {
 						// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
 						case "ephemere":
 							card.location = "hand";
-							card.moveTo(window.game.midX, 0.95);
 							card.putOntoHand(window.game.playerId);
 							break;
 
