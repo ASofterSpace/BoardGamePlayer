@@ -21,6 +21,10 @@ window.game = {
 	textDivText: "",
 	rulesDiv: null,
 
+	// where is the middle of the game board?
+	midX: 0.4,
+	midY: 0.35,
+
 	// messages outgoing to the server
 	msgsOut: [],
 
@@ -106,21 +110,21 @@ window.game = {
 						if (data.action == "start") {
 							window.game.println("Aaand the game is starting! Have fun! :)");
 							for (var i = 0; i < data.forestCards.length; i++) {
-								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", 0.35, 0.35, false, "black");
+								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", window.game.midX - 0.05, window.game.midY - 0.15, false, "black");
 							}
 							for (var i = 0; i < data.itemCards.length; i++) {
-								window.game.loadCard("item/" + data.itemCards[i], "back_item.jpg", 0.45, 0.35, false, "black");
+								window.game.loadCard("item/" + data.itemCards[i], "back_item.jpg", window.game.midX + 0.05, window.game.midY - 0.15, false, "black");
 							}
 							for (var i = 0; i < data.skillCards.length; i++) {
-								window.game.loadCard("skill/" + data.skillCards[i], "back_skill.jpg", 0.35, 0.65, false, "black");
+								window.game.loadCard("skill/" + data.skillCards[i], "back_skill.jpg", window.game.midX - 0.05, window.game.midY + 0.15, false, "black");
 							}
 							for (var i = 0; i < data.mountainCards.length; i++) {
-								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", 0.45, 0.65, false, "black");
+								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", window.game.midX + 0.05, window.game.midY + 0.15, false, "black");
 							}
-							window.game.loadCard("discard_forest.jpg", null, 0.25, 0.35, true, "white");
-							window.game.loadCard("discard_item.jpg", null, 0.55, 0.35, true, "white");
-							window.game.loadCard("discard_skill.jpg", null, 0.25, 0.65, true, "white");
-							window.game.loadCard("discard_mountain.jpg", null, 0.55, 0.65, true, "white");
+							window.game.loadCard("discard_forest.jpg", null, window.game.midX - 0.15, window.game.midY - 0.15, true, "white");
+							window.game.loadCard("discard_item.jpg", null, window.game.midX + 0.15, window.game.midY - 0.15, true, "white");
+							window.game.loadCard("discard_skill.jpg", null, window.game.midX - 0.15, window.game.midY + 0.15, true, "white");
+							window.game.loadCard("discard_mountain.jpg", null, window.game.midX + 0.15, window.game.midY + 0.15, true, "white");
 						}
 					}
 
@@ -251,6 +255,9 @@ window.game = {
 			moveTo: function(x, y) {
 				debugLog("[card " + this.id + "] moveTo(" + x + ", " + y + ")");
 				this.div.style.zIndex = window.game.zindexes++;
+				if (this.location == "hand") {
+					this.div.style.zIndex = window.game.zindexes + 1000000;
+				}
 				// TODO :: animate this movement
 				this.div.style.top = ((window.game.height * y) - (this.imgHeight / 2)) + "px";
 				this.div.style.left = ((window.game.width * x) - (this.imgWidth / 2)) + "px";
@@ -404,7 +411,7 @@ window.game = {
 						// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
 						case "ephemere":
 							card.location = "hand";
-							card.moveTo(0.4, 0.95);
+							card.moveTo(window.game.midX, 0.95);
 							card.putOntoHand(window.game.playerId);
 							break;
 
@@ -412,14 +419,14 @@ window.game = {
 						case "permanent":
 							card.turnUp();
 							card.location = "table";
-							card.moveTo(0.4, 0.85);
+							card.moveTo(window.game.midX, 0.8);
 							break;
 
 						// instant goes in the middle and gets turned face up...
 						default:
 							card.turnUp();
 							card.location = "table";
-							card.moveTo(0.4, 0.5);
+							card.moveTo(window.game.midX, window.game.midY);
 							break;
 					}
 				}
