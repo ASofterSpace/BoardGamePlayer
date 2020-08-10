@@ -411,7 +411,12 @@ window.game = {
 				// TODO :: tell the server about this
 			},
 			putOntoHand: function(playerId) {
+				// if this card is already on our hand, don't do anything!
+				if (this.location == "hand") {
+					return;
+				}
 				debugLog("[card " + this.id + "] putOntoHand(" + playerId + ")");
+				this.location = "hand";
 				this.handPlayerId = playerId;
 				if (!window.game.hands[playerId]) {
 					window.game.hands[playerId] = [];
@@ -583,7 +588,6 @@ window.game = {
 
 							// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
 							case "ephemere":
-								card.location = "hand";
 								card.putOntoHand(window.game.playerId);
 								break;
 
@@ -612,9 +616,20 @@ window.game = {
 						break;
 
 					case "hand":
-						// TODO :: if a card is currently selected, move it to this hand
-						// otherwise, select this clicked card
-						card.select();
+						// if a card is currently selected,
+						if (window.game.selectedCard != null) {
+							// ... and is not already on your hand ...
+							if (window.game.selectedCard.location != "hand") {
+								// ... move it to your hand!
+								window.game.selectedCard.putOntoHand(window.game.playerId);
+							} else {
+								// otherwise, select this clicked card
+								card.select();
+							}
+						} else {
+							// otherwise, select this clicked card
+							card.select();
+						}
 						break;
 
 					case "discard":
