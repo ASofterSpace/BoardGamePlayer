@@ -163,8 +163,40 @@ window.game = {
 								card.location = "discard";
 								card.eventTarget.addEventListener("click", function(e) {
 									window.game.discardSelectedCard();
-								});
+								}, false);
 							}
+							// when a player clicks on the table...
+							window.game.gameArea.addEventListener("click", function(e) {
+
+								debugLog("[table] onClick");
+
+								if (e.target.id != window.game.gameArea.id) {
+									// prevent table bubbling when actually a card is clicked
+									return;
+								}
+
+								// ... if a card has currently been selected ...
+								if (window.game.selectedCard != null) {
+
+									// ... and if it is on their hand ...
+									if (window.game.selectedCard.location == "hand") {
+
+										// ... move it off their hand ...
+										window.game.selectedCard.removeFromHand();
+									}
+
+									// ... then, move it to this position on the table
+									window.game.selectedCard.moveTo(
+										e.clientX / window.game.gameArea.clientWidth,
+										e.clientY / window.game.gameArea.clientHeight
+									);
+
+									// we soft-select it in the end so that the selection is "clear" again
+									window.game.selectedCard.softSelect();
+
+									// (no need to tell the server about this, as removeFromHand and moveTo already do this)
+								}
+							}, false);
 						}
 					}
 
@@ -397,7 +429,7 @@ window.game = {
 				}
 				window.game.refreshHand(this.handPlayerId);
 				this.location = "table";
-				this.refreshCardFace();
+				this.turnUp();
 			},
 			isFaceVisible: function() {
 				if ((this.location == "hand") && (this.handPlayerId == window.game.playerId)) {
@@ -575,7 +607,8 @@ window.game = {
 
 					case "table":
 						card.select();
-						// TODO :: when you click on the table after this, move the selected card there
+						// when you click on the table after this, we move the selected card there
+						// through the click event listener on the gameArea table
 						break;
 
 					case "hand":
