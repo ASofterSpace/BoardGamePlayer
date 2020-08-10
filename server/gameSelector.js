@@ -21,6 +21,12 @@ window.game = {
 	textDivText: "",
 	rulesDiv: null,
 
+	// the four possible origins of cards
+	origins: ["forest", "item", "skill", "mountain"],
+
+	// which card is currently selected (contains the actual card object)
+	selectedCard: null,
+
 	// where is the middle of the game board?
 	midX: 0.4,
 	midY: 0.35,
@@ -81,8 +87,8 @@ window.game = {
 			for (var i = window.game.moves.length - 1; i >= 0; i--) {
 				var move = window.game.moves[i];
 				var card = move.card;
-				var newX = (move.x + card.curX) / 2;
-				var newY = (move.y + card.curY) / 2;
+				var newX = (move.x + (2 * card.curX)) / 3;
+				var newY = (move.y + (2 * card.curY)) / 3;
 				if ((Math.abs(card.curX - newX) < 1) && (Math.abs(card.curY - newY) < 1)) {
 					card.curX = move.x;
 					card.curY = move.y;
@@ -150,10 +156,15 @@ window.game = {
 							for (var i = 0; i < data.mountainCards.length; i++) {
 								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", window.game.midX + 0.05, window.game.midY + 0.15, false, "black");
 							}
-							window.game.loadCard("discard_forest.jpg", null, window.game.midX - 0.15, window.game.midY - 0.15, true, "white");
-							window.game.loadCard("discard_item.jpg", null, window.game.midX + 0.15, window.game.midY - 0.15, true, "white");
-							window.game.loadCard("discard_skill.jpg", null, window.game.midX - 0.15, window.game.midY + 0.15, true, "white");
-							window.game.loadCard("discard_mountain.jpg", null, window.game.midX + 0.15, window.game.midY + 0.15, true, "white");
+							// discard piles (one per origin)
+							for (var i = 0; i < window.game.origins.length; i++) {
+								var orig = window.game.origins[i];
+								var card = window.game.loadCard("discard_"+orig+".jpg", null, window.game.originToX(orig), window.game.originToY(orig), true, "white");
+								card.location = "discard";
+								card.eventTarget.addEventListener("click", function(e) {
+									window.game.discardSelectedCard();
+								});
+							}
 						}
 					}
 
@@ -164,6 +175,34 @@ window.game = {
 			request.send(JSON.stringify(loopData));
 
 		}, 2000);
+	},
+
+	originToX: function(origin) {
+		switch (origin) {
+			case "forest":
+				return this.midX - 0.15;
+			case "item":
+				return this.midX + 0.15;
+			case "skill":
+				return this.midX - 0.15;
+			case "mountain":
+				return this.midX + 0.15;
+		}
+		return this.midX;
+	},
+
+	originToY: function(origin) {
+		switch (origin) {
+			case "forest":
+				return this.midY - 0.15;
+			case "item":
+				return this.midY - 0.15;
+			case "skill":
+				return this.midY + 0.15;
+			case "mountain":
+				return this.midY + 0.15;
+		}
+		return this.midY;
 	},
 
 	sendToServer: function(data) {
@@ -232,6 +271,41 @@ window.game = {
 		bigCardDiv.style.right = "2px";
 		bigCardDiv.style.borderRadius = "16pt";
 		this.gameArea.appendChild(bigCardDiv);
+	},
+
+	discardSelectedCard: function() {
+
+		// move it to this discard pile...
+		if (window.game.selectedCard != null) {
+
+			// if this card is currently on someone's hand, remove it from there
+			if (window.game.selectedCard.location == "hand") {
+				window.game.selectedCard.removeFromHand();
+			}
+
+			window.game.selectedCard.turnUp();
+			// ... and assign its location to discard
+			window.game.selectedCard.location = "discard";
+			window.game.selectedCard.moveTo(
+				window.game.originToX(window.game.selectedCard.origin),
+				window.game.originToY(window.game.selectedCard.origin)
+			);
+
+			// TODO :: tell the server (and the other players) about this
+
+			// we soft-select it in the end so that the selection is "clear" again
+			window.game.selectedCard.softSelect();
+		}
+	},
+
+	refreshHand: function(playerId) {
+		var len = window.game.hands[playerId].length;
+		for (var i = 0; i < len; i++) {
+			var curCard = window.game.getCard(window.game.hands[playerId][i]);
+			if (curCard != null) {
+				curCard.moveTo(0.4 + ((i - ((len - 1) / 2)) / 50), 0.98 + Math.abs((i - ((len - 1) / 2)) / 200));
+			}
+		}
 	},
 
 	loadCard: function(imgPath, backImgPath, x, y, flippedUp, frameColor) {
@@ -311,13 +385,18 @@ window.game = {
 					window.game.hands[playerId] = [];
 				}
 				window.game.hands[playerId].push(this.id);
-				var len = window.game.hands[playerId].length;
-				for (var i = 0; i < len; i++) {
-					var curCard = window.game.getCard(window.game.hands[playerId][i]);
-					if (curCard != null) {
-						curCard.moveTo(0.4 + ((i - (len / 2)) / 50), 0.98 + Math.abs((i - (len / 2)) / 200));
+				window.game.refreshHand(playerId);
+				this.refreshCardFace();
+			},
+			removeFromHand: function() {
+				debugLog("[card " + this.id + "] removeFromHand()");
+				for (var i = window.game.hands[this.handPlayerId].length - 1; i >= 0; i--) {
+					if (window.game.hands[this.handPlayerId][i] == this.id) {
+						window.game.hands[this.handPlayerId].splice(i, 1);
 					}
 				}
+				window.game.refreshHand(this.handPlayerId);
+				this.location = "table";
 				this.refreshCardFace();
 			},
 			isFaceVisible: function() {
@@ -334,6 +413,23 @@ window.game = {
 					this.img.style.display = "none";
 					this.backImg.style.display = "block";
 				}
+			},
+			// show a selection shadow around this card so that it is clear which card was active last,
+			// but do NOT actually fully select it
+			softSelect: function() {
+				window.game.selectedCard = null;
+				for (var i = 0; i < window.game.cards.length; i++) {
+					window.game.cards[i].div.style.boxShadow = "none";
+				}
+				this.div.style.boxShadow = "rgba(255, 196, 32, 0.5) 0pt 0pt 5pt 5pt";
+			},
+			// actually fully select this card
+			select: function() {
+				window.game.selectedCard = this;
+				for (var i = 0; i < window.game.cards.length; i++) {
+					window.game.cards[i].div.style.boxShadow = "none";
+				}
+				this.div.style.boxShadow = "rgba(255, 196, 32, 1) 0pt 0pt 5pt 5pt";
 			},
 		};
 		this.ids++;
@@ -445,32 +541,53 @@ window.game = {
 
 				// first of all, check where the card actually is
 
-				if (card.location == "deck") {
+				switch (card.location) {
 
-					// ... now, based on what card we have, do something with it!
+					case "deck":
 
-					switch (card.kind) {
+						// ... now, based on what card we have, do something with it!
 
-						// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
-						case "ephemere":
-							card.location = "hand";
-							card.putOntoHand(window.game.playerId);
-							break;
+						switch (card.kind) {
 
-						// permanent goes in front of you and gets turned face up...
-						case "permanent":
-							card.turnUp();
-							card.location = "table";
-							card.moveTo(window.game.midX, 0.8);
-							break;
+							// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
+							case "ephemere":
+								card.location = "hand";
+								card.putOntoHand(window.game.playerId);
+								break;
 
-						// instant goes in the middle and gets turned face up...
-						default:
-							card.turnUp();
-							card.location = "table";
-							card.moveTo(window.game.midX, window.game.midY);
-							break;
-					}
+							// permanent goes in front of you and gets turned face up...
+							case "permanent":
+								card.turnUp();
+								card.location = "table";
+								card.moveTo(window.game.midX, 0.8);
+								break;
+
+							// instant goes in the middle and gets turned face up...
+							default:
+								card.turnUp();
+								card.location = "table";
+								card.moveTo(window.game.midX, window.game.midY);
+								break;
+						}
+
+						card.softSelect();
+						break;
+
+					case "table":
+						card.select();
+						// TODO :: when you click on the table after this, move the selected card there
+						break;
+
+					case "hand":
+						// TODO :: if a card is currently selected, move it to this hand
+						// otherwise, select this clicked card
+						card.select();
+						break;
+
+					case "discard":
+						// if a card is currently selected, move it to this discard pile...
+						window.game.discardSelectedCard();
+						break;
 				}
 
 				// TODO consider other locations
