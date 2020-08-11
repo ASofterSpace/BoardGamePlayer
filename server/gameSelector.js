@@ -198,6 +198,18 @@ window.game = {
 								}
 							}, false);
 						}
+						if (data.action == "drawSkillCards") {
+							var skillCards = [];
+							for (var i = 0; i < window.game.cards.length; i++) {
+								if (window.game.cards[i].origin == "skill") {
+									skillCards.push(window.game.cards[i]);
+								}
+							}
+							for (var i = data.offset; i < data.offset + data.amount; i++) {
+								skillCards[i].draw();
+							}
+							window.game.deselectCard();
+						}
 					}
 
 					// TODO actually handle the response - that is, the server informing us about all the things that are happening
@@ -471,6 +483,34 @@ window.game = {
 				window.game.selectedCard = this;
 				this.div.style.boxShadow = "rgba(255, 196, 32, 1) 0pt 0pt 5pt 5pt";
 			},
+			// draw this card from the deck
+			draw: function() {
+				// ... now, based on what card we have, do something with it!
+
+				switch (this.kind) {
+
+					// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
+					case "ephemere":
+						this.putOntoHand(window.game.playerId);
+						break;
+
+					// permanent goes in front of you and gets turned face up...
+					case "permanent":
+						this.turnUp();
+						this.location = "table";
+						this.moveTo(window.game.midX, 0.8);
+						break;
+
+					// instant goes in the middle and gets turned face up...
+					default:
+						this.turnUp();
+						this.location = "table";
+						this.moveTo(window.game.midX, window.game.midY);
+						break;
+				}
+
+				this.softSelect();
+			},
 		};
 		this.ids++;
 		this.cards.push(card);
@@ -592,32 +632,7 @@ window.game = {
 				switch (card.location) {
 
 					case "deck":
-
-						// ... now, based on what card we have, do something with it!
-
-						switch (card.kind) {
-
-							// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
-							case "ephemere":
-								card.putOntoHand(window.game.playerId);
-								break;
-
-							// permanent goes in front of you and gets turned face up...
-							case "permanent":
-								card.turnUp();
-								card.location = "table";
-								card.moveTo(window.game.midX, 0.8);
-								break;
-
-							// instant goes in the middle and gets turned face up...
-							default:
-								card.turnUp();
-								card.location = "table";
-								card.moveTo(window.game.midX, window.game.midY);
-								break;
-						}
-
-						card.softSelect();
+						card.draw();
 						break;
 
 					case "table":

@@ -101,6 +101,18 @@ public class Elfik {
 		msg.set("mountainCards", mountainCardNames);
 
 		sendMsgToPlayers(msg);
+
+		// let each player draw 8 skill cards
+		int offset = 0;
+		int drawAmount = 8;
+		for (Player player : players) {
+			msg = Record.emptyObject();
+			msg.set("action", "drawSkillCards");
+			msg.set("offset", offset);
+			msg.set("amount", drawAmount);
+			sendMsgToPlayer(msg, player);
+			offset += drawAmount;
+		}
 	}
 
 }
