@@ -3,6 +3,7 @@ window.game = {
 	name: "",
 	playerName: "",
 	playerId: 0,
+	players: [],
 
 	// a token that we got from the backend with which we authenticate our requests and are uniquely
 	// identifiable, including our id and the game we are playing
@@ -197,6 +198,43 @@ window.game = {
 									// (no need to tell the server about this, as removeFromHand and moveTo already do this)
 								}
 							}, false);
+						}
+						if (data.action == "info") {
+							window.game.players = data.players;
+							var playerPos = 0;
+							for (var i = 0; i < data.players.length; i++) {
+								var x = 0.5;
+								var y = 0.5;
+								if (data.players[i].id == window.game.playerId) {
+									x = 0.7;
+									y = 0.8;
+								} else {
+									if (playerPos == 0) {
+										x = 0.2;
+										y = 0.7;
+									} else {
+										x = 0.7;
+										y = 0.2;
+									}
+									playerPos++;
+								}
+								var charCard = window.game.loadCard("characters/" + data.players[i].char + ".jpg", null, x, y, true, "black");
+								charCard.addLabel(data.players[i].name);
+								charCard.location = "table";
+								charCard.eventTarget.addEventListener("click", function(e) {
+
+									debugLog("[char card " + charCard + "] onClick");
+
+									if (window.game.selectedCard != null) {
+										if (window.game.selectedCard.id == charCard.id) {
+											window.game.deselectCard();
+											return;
+										}
+									}
+
+									charCard.select();
+								}, false);
+							}
 						}
 						if (data.action == "drawSkillCards") {
 							var skillCards = [];
@@ -510,6 +548,17 @@ window.game = {
 				}
 
 				this.softSelect();
+			},
+			addLabel: function(caption) {
+				var label = document.createElement("div");
+				label.innerHTML = caption;
+				label.style.position = "absolute";
+				label.style.top = "-16pt";
+				label.style.left = "0pt";
+				label.style.width = "100%";
+				label.style.textAlign = "center";
+				this.label = label;
+				this.div.appendChild(label);
 			},
 		};
 		this.ids++;

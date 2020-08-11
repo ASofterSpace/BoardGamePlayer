@@ -102,6 +102,20 @@ public class Elfik {
 
 		sendMsgToPlayers(msg);
 
+		// tell each player about who the other players are
+		msg = Record.emptyObject();
+		msg.set("action", "info");
+		List<Record> playerInfos = new ArrayList<>();
+		for (ElfikPlayer player : players) {
+			Record info = Record.emptyObject();
+			info.set("char", player.getCharName());
+			info.set("id", player.getId());
+			info.set("name", player.getName());
+			playerInfos.add(info);
+		}
+		msg.set("players", playerInfos);
+		sendMsgToPlayers(msg);
+
 		// let each player draw 8 skill cards
 		int offset = 0;
 		int drawAmount = 8;
