@@ -340,6 +340,14 @@ window.game = {
 		}
 	},
 
+	// deselect the currently selected or soft-selected card
+	deselectCard: function() {
+		window.game.selectedCard = null;
+		for (var i = 0; i < window.game.cards.length; i++) {
+			window.game.cards[i].div.style.boxShadow = "none";
+		}
+	},
+
 	loadCard: function(imgPath, backImgPath, x, y, flippedUp, frameColor) {
 
 		// if the card we are loading has no backside, just use the front side as backside ;)
@@ -454,18 +462,13 @@ window.game = {
 			// show a selection shadow around this card so that it is clear which card was active last,
 			// but do NOT actually fully select it
 			softSelect: function() {
-				window.game.selectedCard = null;
-				for (var i = 0; i < window.game.cards.length; i++) {
-					window.game.cards[i].div.style.boxShadow = "none";
-				}
+				window.game.deselectCard();
 				this.div.style.boxShadow = "rgba(255, 196, 32, 0.5) 0pt 0pt 5pt 5pt";
 			},
 			// actually fully select this card
 			select: function() {
+				window.game.deselectCard();
 				window.game.selectedCard = this;
-				for (var i = 0; i < window.game.cards.length; i++) {
-					window.game.cards[i].div.style.boxShadow = "none";
-				}
 				this.div.style.boxShadow = "rgba(255, 196, 32, 1) 0pt 0pt 5pt 5pt";
 			},
 		};
@@ -575,6 +578,14 @@ window.game = {
 			card.eventTarget.addEventListener("click", function(e) {
 
 				debugLog("[card " + card + "] onClick");
+
+				// first of all, if we click an already selected card, de-select it again
+				if (window.game.selectedCard != null) {
+					if (window.game.selectedCard.id == card.id) {
+						window.game.deselectCard();
+						return;
+					}
+				}
 
 				// first of all, check where the card actually is
 
