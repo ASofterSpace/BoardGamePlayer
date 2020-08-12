@@ -253,9 +253,47 @@ window.game = {
 								}
 							}
 							for (var i = data.offset; i < data.offset + data.amount; i++) {
+
 								skillCards[i].draw();
+
+								// tell the server (and the other players) about this
+								window.game.sendToServer({action: "draw", card: skillCards[i].id});
 							}
 							window.game.deselectCard();
+						}
+						if (data.action == "draw") {
+
+							var card = window.game.getCard(data.card);
+
+							// ... now, based on what card we have, do something with it!
+
+							switch (card.kind) {
+
+								// ephemere goes on your hand and gets turned face up for you, but stays face down for everyone else...
+								case "ephemere":
+									card.putOntoHand(data.player);
+									break;
+
+								// permanent goes in front of you and gets turned face up...
+								case "permanent":
+									card.turnUp();
+									card.location = "table";
+									var newPos = window.game.playerPosToOurPos(window.game.midX, 0.8, data.player);
+									card.moveAndRotate(newPos);
+									break;
+
+								// instant goes in the middle and gets turned face up...
+								default:
+									card.turnUp();
+									card.location = "table";
+									var newPos = window.game.playerPosToOurPos(window.game.midX, window.game.midY, data.player);
+									card.moveTo(window.game.midX, window.game.midY);
+									card.rotate(newPos.rot);
+									break;
+							}
+
+							// we also-select it so that this player knows another player did this
+							card.alsoSelect();
 						}
 						if (data.action == "discard") {
 
@@ -298,6 +336,15 @@ window.game = {
 
 							// ... then, move it to this position on the table
 							card.moveAndRotate(newPos);
+
+							// we also-select it so that this player knows another player did this
+							card.alsoSelect();
+						}
+						if (data.action == "grabOntoHand") {
+
+							var card = window.game.getCard(data.card);
+
+							card.putOntoHand(data.player);
 
 							// we also-select it so that this player knows another player did this
 							card.alsoSelect();
@@ -479,7 +526,11 @@ window.game = {
 		for (var i = 0; i < len; i++) {
 			var curCard = window.game.getCard(window.game.hands[playerId][i]);
 			if (curCard != null) {
-				curCard.moveTo(0.4 + ((i - ((len - 1) / 2)) / 50), 0.98 + Math.abs((i - ((len - 1) / 2)) / 200));
+				var newPos = window.game.playerPosToOurPos(
+					0.4 + ((i - ((len - 1) / 2)) / 50),
+					0.98 + Math.abs((i - ((len - 1) / 2)) / 200),
+					playerId);
+				curCard.moveAndRotate(newPos);
 			}
 		}
 	},
@@ -797,7 +848,8 @@ window.game = {
 					case "deck":
 						card.draw();
 
-						// TODO :: tell the server about this
+						// tell the server (and the other players) about this
+						window.game.sendToServer({action: "draw", card: card.id});
 
 						// TODO :: if this deck would now be empty, automagically shuffle the discard pile and put it back as deck
 						// (but let the server shuffle and tell everyone about it! don't let every player shuffle for themselves xD)
@@ -816,7 +868,8 @@ window.game = {
 							if (window.game.selectedCard.location != "hand") {
 								// ... move it to your hand!
 								window.game.selectedCard.putOntoHand(window.game.playerId);
-								// TODO :: tell the server about this
+								// tell the server (and the other players) about this
+								window.game.sendToServer({action: "grabOntoHand", card: card.id});
 							} else {
 								// otherwise, select this clicked card
 								card.select();
