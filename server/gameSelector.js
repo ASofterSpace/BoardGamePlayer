@@ -124,6 +124,7 @@ window.game = {
 			request.open("POST", "commLoop", false);
 			request.setRequestHeader("Content-Type", "application/json");
 
+			//# actually handle the response - that is, the server informing us about all the things that are happening
 			request.onreadystatechange = function() {
 				if (request.readyState == 4 && request.status == 200) {
 					console.log("commLoop response:");
@@ -163,7 +164,7 @@ window.game = {
 								var card = window.game.loadCard("discard_"+orig+".jpg", null, window.game.originToX(orig), window.game.originToY(orig), true, "white");
 								card.location = "discard";
 								card.eventTarget.addEventListener("click", function(e) {
-									window.game.discardSelectedCard();
+									window.game.discardSelectedCardAndTellServer();
 								}, false);
 							}
 							// when a player clicks on the table...
@@ -192,10 +193,10 @@ window.game = {
 										e.clientY / window.game.gameArea.clientHeight
 									);
 
+									// TODO :: tell the server about this
+
 									// we soft-select it in the end so that the selection is "clear" again
 									window.game.selectedCard.softSelect();
-
-									// (no need to tell the server about this, as removeFromHand and moveTo already do this)
 								}
 							}, false);
 						}
@@ -248,9 +249,33 @@ window.game = {
 							}
 							window.game.deselectCard();
 						}
-					}
+						if (data.action == "discard") {
 
-					// TODO actually handle the response - that is, the server informing us about all the things that are happening
+							var card = null;
+							for (var i = 0; i < window.game.cards.length; i++) {
+								if (window.game.cards[i].id == data.card) {
+									card = window.game.cards[i];
+								}
+							}
+
+							// if this card is currently on someone's hand, remove it from there
+							if (card.location == "hand") {
+								card.removeFromHand();
+							}
+
+							card.turnUp();
+
+							// ... and assign its location to discard
+							card.location = "discard";
+							card.moveTo(
+								window.game.originToX(card.origin),
+								window.game.originToY(card.origin)
+							);
+
+							// we soft-select it in the end so that the selection is "clear" again
+							card.alsoSelect();
+						}
+					}
 				}
 			}
 
@@ -355,7 +380,7 @@ window.game = {
 		this.gameArea.appendChild(bigCardDiv);
 	},
 
-	discardSelectedCard: function() {
+	discardSelectedCardAndTellServer: function() {
 
 		// move it to this discard pile...
 		if (window.game.selectedCard != null) {
@@ -373,7 +398,8 @@ window.game = {
 				window.game.originToY(window.game.selectedCard.origin)
 			);
 
-			// TODO :: tell the server (and the other players) about this
+			// tell the server (and the other players) about this
+			window.game.sendToServer({action: "discard", card: window.game.selectedCard.id});
 
 			// we soft-select it in the end so that the selection is "clear" again
 			window.game.selectedCard.softSelect();
@@ -439,14 +465,12 @@ window.game = {
 				this.div.style.zIndex = window.game.zindexes++;
 				this.flippedUp = true;
 				this.refreshCardFace();
-				// TODO :: tell the server about this
 			},
 			turnDown: function() {
 				debugLog("[card " + this.id + "] turnDown");
 				this.div.style.zIndex = window.game.zindexes++;
 				this.flippedUp = false;
 				this.refreshCardFace();
-				// TODO :: tell the server about this
 			},
 			moveTo: function(x, y) {
 				debugLog("[card " + this.id + "] moveTo(" + x + ", " + y + ")");
@@ -466,7 +490,6 @@ window.game = {
 					x: ((window.game.width * x) - (this.imgWidth / 2)),
 					y: ((window.game.height * y) - (this.imgHeight / 2)),
 				});
-				// TODO :: tell the server about this
 			},
 			putOntoHand: function(playerId) {
 				// if this card is already on our hand, don't do anything!
@@ -508,6 +531,11 @@ window.game = {
 					this.img.style.display = "none";
 					this.backImg.style.display = "block";
 				}
+			},
+			// show a selection shadow around this card so that it is clear it was active, but do not
+			// even deselect other cards, as this one might have been moved by another player at the same time
+			alsoSelect: function() {
+				this.div.style.boxShadow = "rgba(32, 128, 255, 0.75) 0pt 0pt 5pt 5pt";
 			},
 			// show a selection shadow around this card so that it is clear which card was active last,
 			// but do NOT actually fully select it
@@ -682,6 +710,11 @@ window.game = {
 
 					case "deck":
 						card.draw();
+
+						// TODO :: tell the server about this
+
+						// TODO :: if this deck would now be empty, automagically shuffle the discard pile and put it back as deck
+						// (but let the server shuffle and tell everyone about it! don't let every player shuffle for themselves xD)
 						break;
 
 					case "table":
@@ -697,6 +730,7 @@ window.game = {
 							if (window.game.selectedCard.location != "hand") {
 								// ... move it to your hand!
 								window.game.selectedCard.putOntoHand(window.game.playerId);
+								// TODO :: tell the server about this
 							} else {
 								// otherwise, select this clicked card
 								card.select();
@@ -711,7 +745,7 @@ window.game = {
 						// if a card is currently selected,
 						if (window.game.selectedCard != null) {
 							// move it to this discard pile...
-							window.game.discardSelectedCard();
+							window.game.discardSelectedCardAndTellServer();
 						} else {
 							// otherwise, select this clicked card
 							card.select();

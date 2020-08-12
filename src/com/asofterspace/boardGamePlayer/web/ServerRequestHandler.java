@@ -117,14 +117,24 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 					}
 					List<Record> actions = json.getArray("actions");
 					for (Record action : actions) {
+						System.out.println(action);
 						if (player instanceof ElfikPlayer) {
 							ElfikPlayer elfikPlayer = (ElfikPlayer) player;
 							switch (action.getString("action")) {
+
+								// the player has chosen a character
 								case "chooseCharacter":
 									elfikPlayer.setCharName(action.getString("charName"));
 									if (Elfik.allPlayersChoseChars()) {
 										Elfik.startGame();
 									}
+									break;
+
+								// in the following cases, a player tells us something, and we forward it
+								// to everyone else:
+								case "discard":
+									action.set("player", player.getId());
+									Elfik.sendMsgToPlayersExcept(action, player);
 									break;
 							}
 						}
