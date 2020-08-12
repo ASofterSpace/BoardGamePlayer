@@ -21,6 +21,7 @@ import com.asofterspace.toolbox.web.WebServerRequestHandler;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -128,6 +129,13 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 									if (Elfik.allPlayersChoseChars()) {
 										Elfik.startGame();
 									}
+									break;
+
+								case "shuffleIntoDeck":
+									List<Record> cardsToShuffle = action.getArray("cards");
+									Collections.shuffle(cardsToShuffle, Elfik.getRand());
+									action.set("cards", cardsToShuffle);
+									Elfik.sendMsgToPlayers(action);
 									break;
 
 								// in the following cases, a player tells us something, and we forward it

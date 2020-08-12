@@ -37,6 +37,10 @@ public class Elfik {
 		return player;
 	}
 
+	public static Random getRand() {
+		return rand;
+	}
+
 	public static List<ElfikPlayer> getPlayers() {
 		return players;
 	}

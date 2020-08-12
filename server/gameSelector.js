@@ -164,21 +164,21 @@ window.game = {
 						if (data.action == "start") {
 							window.game.clearOutput();
 							for (var i = 0; i < data.forestCards.length; i++) {
-								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", window.game.midX - 0.05, window.game.midY - 0.15, false, "black");
+								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", window.game.deckOriginToX("forest"), window.game.deckOriginToY("forest"), false, "black");
 							}
 							for (var i = 0; i < data.itemCards.length; i++) {
-								window.game.loadCard("item/" + data.itemCards[i], "back_item.jpg", window.game.midX + 0.05, window.game.midY - 0.15, false, "black");
+								window.game.loadCard("item/" + data.itemCards[i], "back_item.jpg", window.game.deckOriginToX("item"), window.game.deckOriginToY("item"), false, "black");
 							}
 							for (var i = 0; i < data.skillCards.length; i++) {
-								window.game.loadCard("skill/" + data.skillCards[i], "back_skill.jpg", window.game.midX - 0.05, window.game.midY + 0.15, false, "black");
+								window.game.loadCard("skill/" + data.skillCards[i], "back_skill.jpg", window.game.deckOriginToX("skill"), window.game.deckOriginToY("skill"), false, "black");
 							}
 							for (var i = 0; i < data.mountainCards.length; i++) {
-								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", window.game.midX + 0.05, window.game.midY + 0.15, false, "black");
+								window.game.loadCard("mountain/" + data.mountainCards[i], "back_mountain.jpg", window.game.deckOriginToX("mountain"), window.game.deckOriginToY("mountain"), false, "black");
 							}
 							// discard piles (one per origin)
 							for (var i = 0; i < window.game.origins.length; i++) {
 								var orig = window.game.origins[i];
-								var card = window.game.loadCard("discard_"+orig+".jpg", null, window.game.originToX(orig), window.game.originToY(orig), true, "white");
+								var card = window.game.loadCard("discard_"+orig+".jpg", null, window.game.discardOriginToX(orig), window.game.discardOriginToY(orig), true, "white");
 								card.location = "discard";
 								card.eventTarget.addEventListener("click", function(e) {
 									window.game.discardSelectedCardAndTellServer();
@@ -309,8 +309,8 @@ window.game = {
 							// ... and assign its location to discard
 							card.location = "discard";
 							card.moveTo(
-								window.game.originToX(card.origin),
-								window.game.originToY(card.origin)
+								window.game.discardOriginToX(card.origin),
+								window.game.discardOriginToY(card.origin)
 							);
 
 							// we also-select it so that this player knows another player did this
@@ -349,6 +349,17 @@ window.game = {
 							// we also-select it so that this player knows another player did this
 							card.alsoSelect();
 						}
+						if (data.action == "shuffleIntoDeck") {
+
+							// we here assume that only cards are shuffled into the deck from the discard pile,
+							// not e.g. from hand (where we would need to explicitly remove them from a hand first)
+							for (var i = 0; i < data.cards.length; i++) {
+								var card = window.game.getCard(data.cards[i]);
+								card.location = "deck";
+								card.turnDown();
+								card.moveTo(window.game.deckOriginToX(card.origin), window.game.deckOriginToY(card.origin));
+							}
+						}
 					}
 				}
 			}
@@ -359,7 +370,37 @@ window.game = {
 	},
 
 	// get X position of the deck with the given origin
-	originToX: function(origin) {
+	deckOriginToX: function(origin) {
+		switch (origin) {
+			case "forest":
+				return this.midX - 0.05;
+			case "item":
+				return this.midX + 0.05;
+			case "skill":
+				return this.midX - 0.05;
+			case "mountain":
+				return this.midX + 0.05;
+		}
+		return this.midX;
+	},
+
+	// get Y position of the deck with the given origin
+	deckOriginToY: function(origin) {
+		switch (origin) {
+			case "forest":
+				return this.midY - 0.15;
+			case "item":
+				return this.midY - 0.15;
+			case "skill":
+				return this.midY + 0.15;
+			case "mountain":
+				return this.midY + 0.15;
+		}
+		return this.midY;
+	},
+
+	// get X position of the discard pile with the given origin
+	discardOriginToX: function(origin) {
 		switch (origin) {
 			case "forest":
 				return this.midX - 0.15;
@@ -373,19 +414,9 @@ window.game = {
 		return this.midX;
 	},
 
-	// get Y position of the deck with the given origin
-	originToY: function(origin) {
-		switch (origin) {
-			case "forest":
-				return this.midY - 0.15;
-			case "item":
-				return this.midY - 0.15;
-			case "skill":
-				return this.midY + 0.15;
-			case "mountain":
-				return this.midY + 0.15;
-		}
-		return this.midY;
+	// get Y position of the discard pile with the given origin
+	discardOriginToY: function(origin) {
+		return this.deckOriginToY(origin);
 	},
 
 	// convert this X from player with playerId to an X in our reference frame
@@ -515,8 +546,8 @@ window.game = {
 			// ... and assign its location to discard
 			window.game.selectedCard.location = "discard";
 			window.game.selectedCard.moveTo(
-				window.game.originToX(window.game.selectedCard.origin),
-				window.game.originToY(window.game.selectedCard.origin)
+				window.game.discardOriginToX(window.game.selectedCard.origin),
+				window.game.discardOriginToY(window.game.selectedCard.origin)
 			);
 
 			// tell the server (and the other players) about this
@@ -857,8 +888,24 @@ window.game = {
 						// tell the server (and the other players) about this
 						window.game.sendToServer({action: "draw", card: card.id});
 
-						// TODO :: if this deck would now be empty, automagically shuffle the discard pile and put it back as deck
+						// if this deck would now be empty, automagically shuffle the discard pile and put it back as deck
 						// (but let the server shuffle and tell everyone about it! don't let every player shuffle for themselves xD)
+						var deckIsEmpty = true;
+						var discardedCards = [];
+						for (var i = 0; i < window.game.cards.length; i++) {
+							if (window.game.cards[i].origin == card.origin) {
+								if (window.game.cards[i].location == "deck") {
+									deckIsEmpty = false;
+								}
+								if (window.game.cards[i].location == "discard") {
+									discardedCards.push(window.game.cards[i].id);
+								}
+							}
+						}
+						if (deckIsEmpty) {
+							window.game.sendToServer({action: "shuffleIntoDeck", cards: discardedCards, origin: card.origin});
+						}
+
 						break;
 
 					case "table":
