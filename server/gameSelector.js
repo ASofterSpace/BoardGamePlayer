@@ -230,19 +230,7 @@ window.game = {
 								charCard.rotate(newPos.rot);
 								charCard.addLabel(data.players[i].name);
 								charCard.location = "table";
-								charCard.eventTarget.addEventListener("click", function(e) {
-
-									debugLog("[char card " + charCard + "] onClick");
-
-									if (window.game.selectedCard != null) {
-										if (window.game.selectedCard.id == charCard.id) {
-											window.game.deselectCard();
-											return;
-										}
-									}
-
-									charCard.select();
-								}, false);
+								window.game.addCharCardOnClick(charCard);
 							}
 						}
 						if (data.action == "drawSkillCards") {
@@ -580,6 +568,23 @@ window.game = {
 		}
 	},
 
+	addCharCardOnClick: function(charCard) {
+
+		charCard.eventTarget.addEventListener("click", function(e) {
+
+			debugLog("[char card " + charCard.id + "] onClick");
+
+			if (window.game.selectedCard != null) {
+				if (window.game.selectedCard.id == charCard.id) {
+					window.game.deselectCard();
+					return;
+				}
+			}
+
+			charCard.select();
+		}, false);
+	},
+
 	loadCard: function(imgPath, backImgPath, x, y, flippedUp, frameColor) {
 
 		// if the card we are loading has no backside, just use the front side as backside ;)
@@ -868,7 +873,7 @@ window.game = {
 
 			card.eventTarget.addEventListener("click", function(e) {
 
-				debugLog("[card " + card + "] onClick");
+				debugLog("[card " + card.id + "] onClick");
 
 				// first of all, if we click an already selected card, de-select it again
 				if (window.game.selectedCard != null) {
