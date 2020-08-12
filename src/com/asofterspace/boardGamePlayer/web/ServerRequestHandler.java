@@ -133,6 +133,7 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 								// in the following cases, a player tells us something, and we forward it
 								// to everyone else:
 								case "discard":
+								case "moveToTable":
 									action.set("player", player.getId());
 									Elfik.sendMsgToPlayersExcept(action, player);
 									break;

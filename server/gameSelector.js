@@ -44,6 +44,9 @@ window.game = {
 	// all the moves that are currently happening (objects containing cards and their targets)
 	moves: [],
 
+	// all the rotations just like all the moves
+	rotations: [],
+
 	startElfik: function() {
 
 		this.setupBoard();
@@ -101,6 +104,20 @@ window.game = {
 				}
 				card.div.style.left = card.curX + "px";
 				card.div.style.top = card.curY + "px";
+			}
+
+			for (var i = window.game.rotations.length - 1; i >= 0; i--) {
+				var rotation = window.game.rotations[i];
+				var card = rotation.card;
+				var newRot = (rotation.rot + (3 * card.curRot)) / 4;
+				if (Math.abs(card.curRot - newRot) < 1) {
+					card.curRot = rotation.rot;
+					// remove this rotation
+					window.game.rotations.splice(i, 1);
+				} else {
+					card.curRot = newRot;
+				}
+				card.div.style.transform = "rotate(" + card.curRot + "deg)";
 			}
 		}, 50);
 	},
@@ -187,13 +204,18 @@ window.game = {
 										window.game.selectedCard.removeFromHand();
 									}
 
-									// ... then, move it to this position on the table
-									window.game.selectedCard.moveTo(
-										e.clientX / window.game.gameArea.clientWidth,
-										e.clientY / window.game.gameArea.clientHeight
-									);
+									// when a card is moved onto the table turn it face up!
+									card.location = "table";
+									window.game.selectedCard.turnUp();
 
-									// TODO :: tell the server about this
+									var x = e.clientX / window.game.gameArea.clientWidth;
+									var y = e.clientY / window.game.gameArea.clientHeight;
+
+									// ... then, move it to this position on the table
+									window.game.selectedCard.moveTo(x, y);
+
+									// tell the server (and the other players) about this
+									window.game.sendToServer({action: "moveToTable", card: window.game.selectedCard.id, x: x, y: y});
 
 									// we soft-select it in the end so that the selection is "clear" again
 									window.game.selectedCard.softSelect();
@@ -202,24 +224,10 @@ window.game = {
 						}
 						if (data.action == "info") {
 							window.game.players = data.players;
-							var playerPos = 0;
 							for (var i = 0; i < data.players.length; i++) {
-								var x = 0.5;
-								var y = 0.5;
-								if (data.players[i].id == window.game.playerId) {
-									x = 0.7;
-									y = 0.8;
-								} else {
-									if (playerPos == 0) {
-										x = 0.2;
-										y = 0.7;
-									} else {
-										x = 0.7;
-										y = 0.2;
-									}
-									playerPos++;
-								}
-								var charCard = window.game.loadCard("characters/" + data.players[i].char + ".jpg", null, x, y, true, "black");
+								var newPos = window.game.playerPosToOurPos(0.7, 0.8, data.players[i].id);
+								var charCard = window.game.loadCard("characters/" + data.players[i].char + ".jpg", null, newPos.x, newPos.y, true, "black");
+								charCard.rotate(newPos.rot);
 								charCard.addLabel(data.players[i].name);
 								charCard.location = "table";
 								charCard.eventTarget.addEventListener("click", function(e) {
@@ -251,12 +259,7 @@ window.game = {
 						}
 						if (data.action == "discard") {
 
-							var card = null;
-							for (var i = 0; i < window.game.cards.length; i++) {
-								if (window.game.cards[i].id == data.card) {
-									card = window.game.cards[i];
-								}
-							}
+							var card = window.game.getCard(data.card);
 
 							// if this card is currently on someone's hand, remove it from there
 							if (card.location == "hand") {
@@ -272,7 +275,31 @@ window.game = {
 								window.game.originToY(card.origin)
 							);
 
-							// we soft-select it in the end so that the selection is "clear" again
+							// we also-select it so that this player knows another player did this
+							card.alsoSelect();
+						}
+						if (data.action == "moveToTable") {
+
+							var card = window.game.getCard(data.card);
+
+							// if it is on their hand ...
+							if (card.location == "hand") {
+
+								// ... move it off their hand ...
+								card.removeFromHand();
+							}
+
+							// when a card is moved onto the table, turn it face up
+							card.location = "table";
+							card.turnUp();
+
+							// convert positions
+							var newPos = window.game.playerPosToOurPos(data.x, data.y, data.player);
+
+							// ... then, move it to this position on the table
+							card.moveAndRotate(newPos);
+
+							// we also-select it so that this player knows another player did this
 							card.alsoSelect();
 						}
 					}
@@ -284,6 +311,7 @@ window.game = {
 		}, 2000);
 	},
 
+	// get X position of the deck with the given origin
 	originToX: function(origin) {
 		switch (origin) {
 			case "forest":
@@ -298,6 +326,7 @@ window.game = {
 		return this.midX;
 	},
 
+	// get Y position of the deck with the given origin
 	originToY: function(origin) {
 		switch (origin) {
 			case "forest":
@@ -310,6 +339,45 @@ window.game = {
 				return this.midY + 0.15;
 		}
 		return this.midY;
+	},
+
+	// convert this X from player with playerId to an X in our reference frame
+	playerPosToOurPos: function(x, y, playerId) {
+
+		var playerPos = 0;
+		for (var i = 0; i < window.game.players.length; i++) {
+
+			// if the current one is not us, increase the playerPos to perform a different rotation of cards
+			if (window.game.players[i].id != window.game.playerId) {
+				playerPos++;
+			}
+
+			// if the current one is not the player we are looking for, continue looking!
+			if (window.game.players[i].id != playerId) {
+				continue;
+			}
+
+			// if the player is us...
+			if (window.game.players[i].id == window.game.playerId) {
+				// ... do nothing!
+				return {x: x, y: y, rot: 0};
+			} else {
+				if (playerPos == 1) {
+					// left player
+					return {x: (1 - y) / 2, y: x, rot: 90};
+				}
+				if (playerPos == 2) {
+					// right player
+					return {x: (1 + y) / 2, y: x, rot: -90};
+				}
+				// more than three players are not being considered, they would get playerPos above 2
+				// (below 1 cannot occur as we start counting at 0 and immediately do playerPos++)
+				if (playerPos > 2) {
+					console.log("Too many players, oh noooo!");
+					return {x: x, y: -y, rot: 180};
+				}
+			}
+		}
 	},
 
 	sendToServer: function(data) {
@@ -459,6 +527,7 @@ window.game = {
 			// current position
 			curX: x,
 			curY: y,
+			curRot: 0,
 
 			turnUp: function() {
 				debugLog("[card " + this.id + "] turnUp");
@@ -471,6 +540,10 @@ window.game = {
 				this.div.style.zIndex = window.game.zindexes++;
 				this.flippedUp = false;
 				this.refreshCardFace();
+			},
+			moveAndRotate: function(pos) {
+				this.moveTo(pos.x, pos.y);
+				this.rotate(pos.rot);
 			},
 			moveTo: function(x, y) {
 				debugLog("[card " + this.id + "] moveTo(" + x + ", " + y + ")");
@@ -489,6 +562,19 @@ window.game = {
 					card: this,
 					x: ((window.game.width * x) - (this.imgWidth / 2)),
 					y: ((window.game.height * y) - (this.imgHeight / 2)),
+				});
+				// reset the rotation (which will be right in almost any case, and if not, then we have been called by moveAndRotate which rotates correctly again immediately)
+				this.rotate(0);
+			},
+			rotate: function(rot) {
+				for (var i = window.game.rotations.length - 1; i >= 0; i--) {
+					if (window.game.rotations[i].card.id == this.id) {
+						window.game.rotations.splice(i, 1);
+					}
+				}
+				window.game.rotations.push({
+					card: this,
+					rot: rot,
 				});
 			},
 			putOntoHand: function(playerId) {
