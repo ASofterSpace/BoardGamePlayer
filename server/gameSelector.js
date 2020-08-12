@@ -708,12 +708,16 @@ window.game = {
 						break;
 
 					case "discard":
-						// if a card is currently selected, move it to this discard pile...
-						window.game.discardSelectedCard();
+						// if a card is currently selected,
+						if (window.game.selectedCard != null) {
+							// move it to this discard pile...
+							window.game.discardSelectedCard();
+						} else {
+							// otherwise, select this clicked card
+							card.select();
+						}
 						break;
 				}
-
-				// TODO consider other locations
 
 			}, false);
 		}
