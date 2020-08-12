@@ -162,7 +162,7 @@ window.game = {
 							window.game.println("So far, these fine people are playing: " + playersStr);
 						}
 						if (data.action == "start") {
-							window.game.println("Aaand the game is starting! Have fun! :)");
+							window.game.clearOutput();
 							for (var i = 0; i < data.forestCards.length; i++) {
 								window.game.loadCard("forest/" + data.forestCards[i], "back_forest.jpg", window.game.midX - 0.05, window.game.midY - 0.15, false, "black");
 							}
@@ -414,8 +414,8 @@ window.game = {
 					return {x: (1 - y) / 2, y: x, rot: 90};
 				}
 				if (playerPos == 2) {
-					// right player
-					return {x: (1 + y) / 2, y: x, rot: -90};
+					// right player (whose stuff is even a bit more compressed)
+					return {x: (0.6 + y) / 2, y: x * 0.8, rot: -90};
 				}
 				// more than three players are not being considered, they would get playerPos above 2
 				// (below 1 cannot occur as we start counting at 0 and immediately do playerPos++)
@@ -430,6 +430,11 @@ window.game = {
 	sendToServer: function(data) {
 
 		this.msgsOut.push(data);
+	},
+
+	clearOutput: function() {
+		this.textDivText = "";
+		this.textDiv.innerHTML = this.textDivText;
 	},
 
 	println: function(str) {
@@ -492,6 +497,7 @@ window.game = {
 		bigCardDiv.style.top = ((this.height / 2) - (bigCardImgHeight / 2)) + "px";
 		bigCardDiv.style.right = "2px";
 		bigCardDiv.style.borderRadius = "16pt";
+		bigCardDiv.style.zIndex = 2000000;
 		this.gameArea.appendChild(bigCardDiv);
 	},
 
@@ -945,6 +951,8 @@ window.startGame = function(game) {
 
 	request.send(JSON.stringify(data));
 };
+
+// TODO :: in general - add life point counters! :D (maybe on top of the players' names)
 
 // enable optional debugging
 window.showDebugLog = true;
