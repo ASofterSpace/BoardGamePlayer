@@ -16,3 +16,8 @@ div#gameSelection > img {
 div#gameArea {
 	width: 100%;
 }
+
+span.clickable {
+	cursor: pointer;
+	color: #8000AA;
+}

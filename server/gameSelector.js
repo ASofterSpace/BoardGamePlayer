@@ -3,6 +3,7 @@ window.game = {
 	name: "",
 	playerName: "",
 	playerId: 0,
+	playerLife: 4,
 	players: [],
 
 	// a token that we got from the backend with which we authenticate our requests and are uniquely
@@ -228,7 +229,12 @@ window.game = {
 								var newPos = window.game.playerPosToOurPos(0.7, 0.8, data.players[i].id);
 								var charCard = window.game.loadCard("characters/" + data.players[i].char + ".jpg", null, newPos.x, newPos.y, true, "black");
 								charCard.rotate(newPos.rot);
-								charCard.addLabel(data.players[i].name);
+								var labelText = data.players[i].name + ": <span id='player" + data.players[i].id + "Life'>" + data.players[i].life + "</span>";
+								if (data.players[i].id == window.game.playerId) {
+									window.game.playerLife = data.players[i].life;
+									labelText += " <span class='clickable' onclick='window.game.addLife()'>(+)</span> <span class='clickable' onclick='window.game.subtractLife()'>(-)</span>";
+								}
+								charCard.addLabel(labelText);
 								charCard.location = "table";
 								window.game.addCharCardOnClick(charCard);
 							}
@@ -348,6 +354,9 @@ window.game = {
 								card.moveTo(window.game.deckOriginToX(card.origin), window.game.deckOriginToY(card.origin));
 							}
 						}
+						if (data.action == "setLife") {
+							document.getElementById("player" + data.player + "Life").innerHTML = data.life;
+						}
 					}
 				}
 			}
@@ -355,6 +364,27 @@ window.game = {
 			request.send(JSON.stringify(loopData));
 
 		}, 2000);
+	},
+
+	addLife: function() {
+
+		this.playerLife++;
+		this.changeOurLifeTo(this.playerLife);
+	},
+
+	subtractLife: function() {
+
+		this.playerLife--;
+		this.changeOurLifeTo(this.playerLife);
+	},
+
+	changeOurLifeTo: function(newLife) {
+
+		this.playerLife = newLife;
+
+		window.game.sendToServer({action: "setLife", life: newLife});
+
+		document.getElementById("player" + this.playerId + "Life").innerHTML = newLife;
 	},
 
 	// get X position of the deck with the given origin
@@ -1003,8 +1033,6 @@ window.startGame = function(game) {
 
 	request.send(JSON.stringify(data));
 };
-
-// TODO :: in general - add life point counters! :D (maybe on top of the players' names)
 
 // enable optional debugging
 window.showDebugLog = true;

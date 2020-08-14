@@ -144,6 +144,7 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 								case "discard":
 								case "moveToTable":
 								case "grabOntoHand":
+								case "setLife":
 									action.set("player", player.getId());
 									Elfik.sendMsgToPlayersExcept(action, player);
 									break;

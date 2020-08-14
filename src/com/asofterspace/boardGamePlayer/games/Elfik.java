@@ -115,6 +115,7 @@ public class Elfik {
 			info.set("char", player.getCharName());
 			info.set("id", player.getId());
 			info.set("name", player.getName());
+			info.set("life", 4);
 			playerInfos.add(info);
 		}
 		msg.set("players", playerInfos);
