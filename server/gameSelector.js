@@ -1020,7 +1020,7 @@ window.startGame = function(game) {
 
 	window.game.name = game;
 	window.game.playerName = playerName;
-	window.game.folder = "/games/" + game + "/";
+	window.game.folder = "games/" + game + "/";
 
 	document.getElementById("intro").style.display = "none";
 	document.getElementById("nameBar").style.display = "none";
