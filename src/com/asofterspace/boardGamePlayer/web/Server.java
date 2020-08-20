@@ -19,7 +19,7 @@ public class Server extends WebServer {
 
 	public Server(Directory webRoot, Database db) {
 
-		super(webRoot);
+		super(webRoot, db.getPort());
 
 		this.db = db;
 	}

@@ -21,9 +21,7 @@ public class Database {
 
 	private JSON root;
 
-	/* here, put something like e.g.:
-	private List<Object> objects;
-	*/
+	private Integer port;
 
 
 	public Database(Directory dataDir) {
@@ -42,36 +40,22 @@ public class Database {
 			System.exit(1);
 		}
 
-		/* here, put something like e.g.:
-
-		List<Record> objectsRecs = root.getArray("objects");
-
-		this.objects = new ArrayList<>();
-
-		for (Record rec : objectsRecs) {
-			objects.add(new Object(rec));
-		}
-		*/
+		this.port = root.getInteger("port");
 	}
 
 	public Record getRoot() {
 		return root;
 	}
 
+	public Integer getPort() {
+		return port;
+	}
+
 	public void save() {
 
 		root.makeObject();
 
-		/* here, put something like e.g.:
-
-		List<Record> objectsRecs = new ArrayList<>();
-
-		for (Object obj : objects) {
-			objectsRecs.add(obj.toRecord());
-		}
-
-		root.set("objects", objectsRecs);
-		*/
+		root.set("port", port);
 
 		dbFile.setAllContents(root);
 		dbFile.save();
