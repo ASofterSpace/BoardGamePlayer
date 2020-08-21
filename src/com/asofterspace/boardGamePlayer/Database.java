@@ -48,6 +48,9 @@ public class Database {
 	}
 
 	public Integer getPort() {
+		if (port == null) {
+			return 8080;
+		}
 		return port;
 	}
 

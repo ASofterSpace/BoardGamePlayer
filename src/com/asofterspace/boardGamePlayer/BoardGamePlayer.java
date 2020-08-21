@@ -24,6 +24,8 @@ public class BoardGamePlayer {
 	public final static String GAMES_DIR = "server/games";
 	public final static String WEB_ROOT_DIR = "deployed";
 
+	private static Directory serverDir;
+
 	public final static String PROGRAM_TITLE = "BoardGamePlayer";
 	public final static String VERSION_NUMBER = "0.0.0.4(" + Utils.TOOLBOX_VERSION_NUMBER + ")";
 	public final static String VERSION_DATE = "19. July 2020 - 20. August 2020";
@@ -51,7 +53,7 @@ public class BoardGamePlayer {
 		System.out.println("Looking at directories...");
 
 		Directory dataDir = new Directory(DATA_DIR);
-		Directory origDir = new Directory(SERVER_DIR);
+		serverDir = new Directory(SERVER_DIR);
 		Directory gamesDir = new Directory(GAMES_DIR);
 		Directory webRoot = new Directory(WEB_ROOT_DIR);
 
@@ -61,7 +63,7 @@ public class BoardGamePlayer {
 
 			Database database = new Database(dataDir);
 
-			JsonFile jsonConfigFile = new JsonFile(origDir, "webengine.json");
+			JsonFile jsonConfigFile = new JsonFile(serverDir, "webengine.json");
 			JSON jsonConfig = jsonConfigFile.getAllContents();
 
 			// automatically add specific games files to the WebEngine without having to list them all
@@ -76,14 +78,13 @@ public class BoardGamePlayer {
 			boolean recursively = true;
 			List<File> gameFiles = gamesDir.getAllFiles(recursively);
 			for (File gameFile : gameFiles) {
-				whitelist.add(origDir.getRelativePath(gameFile).replace('\\', '/'));
+				whitelist.add(serverDir.getRelativePath(gameFile).replace('\\', '/'));
 			}
-			jsonConfig.set("files", whitelist);
 
 
 			System.out.println("Templating the web application...");
 
-			WebTemplateEngine engine = new WebTemplateEngine(origDir, jsonConfig);
+			WebTemplateEngine engine = new WebTemplateEngine(serverDir, jsonConfig);
 
 			engine.compileTo(webRoot);
 
@@ -105,6 +106,10 @@ public class BoardGamePlayer {
 
 			System.out.println("Oh no! The input could not be parsed: " + e);
 		}
+	}
+
+	public static Directory getServerDir() {
+		return serverDir;
 	}
 
 }

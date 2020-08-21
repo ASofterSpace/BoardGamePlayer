@@ -4,6 +4,7 @@
  */
 package com.asofterspace.boardGamePlayer.web;
 
+import com.asofterspace.boardGamePlayer.BoardGamePlayer;
 import com.asofterspace.boardGamePlayer.Database;
 import com.asofterspace.boardGamePlayer.games.Elfik;
 import com.asofterspace.boardGamePlayer.games.ElfikPlayer;
@@ -174,19 +175,17 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 	@Override
 	protected File getFileFromLocation(String location, String[] arguments) {
 
-		/*
+		// serves images and PDFs directly from the server dir, rather than the deployed dir
 		// TODO :: this does not go through the whitelist
 		// maybe do some sanity checking before passing this to the File API?
 		// (to ensure that no maliciously crafted string can do... something? ^^)
-		if (location.startsWith("/") && location.endsWith(".jpg")) {
+		if (location.endsWith(".jpg") || location.endsWith(".pdf")) {
 
-			File result = new File(db.getDataDirectory(), location.substring(1));
-
+			File result = new File(BoardGamePlayer.getServerDir(), location);
 			if (result.exists()) {
 				return result;
 			}
 		}
-		*/
 
 		return super.getFileFromLocation(location, arguments);
 	}

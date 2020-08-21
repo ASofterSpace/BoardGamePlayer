@@ -4,8 +4,7 @@
 	"files": [
 		"index.htm",
 		"style.css",
-		"gameSelector.js",
-		"games/elfik/rules.pdf",
+		"gameSelector.js"
 	],
 	"version": 3
 }
