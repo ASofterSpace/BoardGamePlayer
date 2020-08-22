@@ -77,7 +77,7 @@ public class Elfik {
 	private static List<String> getShuffledStack(String stackName) {
 
 		boolean recursively = true;
-		Directory dir = new Directory("deployed/games/elfik/" + stackName);
+		Directory dir = new Directory("server/games/elfik/" + stackName);
 		List<File> cards = dir.getAllFiles(recursively);
 
 		List<String> cardNames = new ArrayList<>();

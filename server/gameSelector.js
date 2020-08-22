@@ -959,7 +959,7 @@ window.game = {
 								// ... move it to your hand!
 								window.game.selectedCard.putOntoHand(window.game.playerId);
 								// tell the server (and the other players) about this
-								window.game.sendToServer({action: "grabOntoHand", card: card.id});
+								window.game.sendToServer({action: "grabOntoHand", card: window.game.selectedCard.id});
 							} else {
 								// otherwise, select this clicked card
 								card.select();
