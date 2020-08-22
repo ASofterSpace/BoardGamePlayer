@@ -175,18 +175,26 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 	@Override
 	protected File getFileFromLocation(String location, String[] arguments) {
 
-		// serves images and PDFs directly from the server dir, rather than the deployed dir
-		// TODO :: this does not go through the whitelist
-		// maybe do some sanity checking before passing this to the File API?
-		// (to ensure that no maliciously crafted string can do... something? ^^)
-		if (location.endsWith(".jpg") || location.endsWith(".pdf")) {
+		String locEquiv = getWhitelistedLocationEquivalent(location);
 
-			File result = new File(BoardGamePlayer.getServerDir(), location);
-			if (result.exists()) {
-				return result;
+		// if no root is specified, then we are just not serving any files at all
+		// and if no location equivalent is found on the whitelist, we are not serving this request
+		if ((webRoot != null) && (locEquiv != null)) {
+
+			// serves images and PDFs directly from the server dir, rather than the deployed dir
+			if (locEquiv.toLowerCase().endsWith(".jpg") || locEquiv.toLowerCase().endsWith(".pdf")) {
+				File result = new File(BoardGamePlayer.getServerDir(), locEquiv);
+				if (result.exists()) {
+					return result;
+				}
 			}
+
+			// actually get the file
+			return webRoot.getFile(locEquiv);
 		}
 
-		return super.getFileFromLocation(location, arguments);
+		// if the file was not found on the whitelist, do not return it
+		// - even if it exists on the server!
+		return null;
 	}
 }
