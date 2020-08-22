@@ -10,7 +10,7 @@ div#gameSelection {
 }
 div#gameSelection > img {
 	padding-top: 5pt;
-	max-width: 175pt;
+	width: 175pt;
 }
 
 div#gameArea {

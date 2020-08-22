@@ -22,6 +22,8 @@ window.game = {
 	textDiv: null,
 	textDivText: "",
 	rulesDiv: null,
+	cardWidthFactor: 1/12,
+	cardHeightRatio: 1.53846,
 
 	// the four possible origins of cards
 	origins: ["forest", "item", "skill", "mountain"],
@@ -68,6 +70,14 @@ window.game = {
 		rulesDiv.style.right = "8pt";
 		rulesDiv.innerHTML = "<a href=\"games/elfik/rules.pdf\" target=\"_blank\">Rule Book</a>";
 		this.gameArea.append(rulesDiv);
+
+		var sizeDiv = document.createElement("div");
+		this.sizeDiv = sizeDiv;
+		sizeDiv.style.position = "absolute";
+		sizeDiv.style.top = "8pt";
+		sizeDiv.style.right = "8pt";
+		sizeDiv.innerHTML = "<span class='clickable' onclick='window.game.resizeCardsDown();'>(-)</span> Card Size <span class='clickable' onclick='window.game.resizeCardsUp();'>(+)</span>";
+		this.gameArea.append(sizeDiv);
 
 		this.loadCharacterToChoose("cendre", 0.55, 0.35);
 		this.loadCharacterToChoose("rayin", 0.55, 0.65);
@@ -531,6 +541,26 @@ window.game = {
 		this.textDiv.innerHTML = this.textDivText;
 	},
 
+	resizeCardsDown: function() {
+		this.cardWidthFactor -= 0.01;
+		this.resizeCards();
+	},
+
+	resizeCardsUp: function() {
+		this.cardWidthFactor += 0.01;
+		this.resizeCards();
+	},
+
+	resizeCards: function() {
+
+		var imgWidth = this.width * this.cardWidthFactor;
+
+		for (var i = 0; i < this.cards.length; i++) {
+			this.cards[i].img.style.width = imgWidth + "px";
+			this.cards[i].backImg.style.width = imgWidth + "px";
+		}
+	},
+
 	getCard: function(cardId) {
 		for (var i = 0; i < this.cards.length; i++) {
 			if (this.cards[i].id == cardId) {
@@ -905,8 +935,8 @@ window.game = {
 		var img = document.createElement("img");
 		img.src = this.folder + imgPath;
 		img.id = "cardFront" + card.id;
-		var imgWidth = (this.width / 12);
-		var imgHeight = 1.53846 * imgWidth;
+		var imgWidth = this.width * window.game.cardWidthFactor;
+		var imgHeight = window.game.cardHeightRatio * imgWidth;
 		img.style.width = imgWidth + "px";
 		img.style.borderRadius = "8pt";
 		// this line removes the whitespace below the image

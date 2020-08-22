@@ -44,12 +44,6 @@ public class BoardGamePlayer {
 			comm loop gives back 404
 			60 times in a row, stop comm loop
 	* make it possible to reorganize cards on hand
-	* make a size selection so
-	   that e.g. Jayem can have
-	   cards sized smaller (ideally,
-	   remember the selection, so
-	   if name contains J, put selection
-	   by default at this-and-that)
 	*/
 	public static void main(String[] args) {
 
