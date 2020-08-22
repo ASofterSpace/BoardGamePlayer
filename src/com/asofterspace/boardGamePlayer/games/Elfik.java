@@ -56,6 +56,12 @@ public class Elfik {
 		return true;
 	}
 
+	public static void awaitNothingOngoing() {
+		for (Player player : players) {
+			player.awaitNothingOngoing();
+		}
+	}
+
 	public static void sendMsgToPlayersExcept(Record msg, Player doNotSendTo) {
 		for (Player player : players) {
 			if (!doNotSendTo.equals(player)) {

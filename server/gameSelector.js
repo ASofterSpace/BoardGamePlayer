@@ -358,6 +358,44 @@ window.game = {
 						if (data.action == "setLife") {
 							document.getElementById("player" + data.player + "Life").innerHTML = data.life;
 						}
+						if (data.action == "reuniteForestCards") {
+
+							// get all forest cards from all hands
+							for (var i = 0; i < window.game.players.length; i++) {
+								var hand = window.game.hands[window.game.players[i].id];
+								if (hand) {
+									for (var j = 0; j < hand.length; j++) {
+										for (var n = 0; n < data.newOrder.length; n++) {
+											for (var c = 0; c < data.newOrder[n].length; c++) {
+												if (data.newOrder[n][c] == hand[j]) {
+													window.game.getCard(hand[j]).turnDown();
+													window.game.hands[window.game.players[i].id].splice(j, 1);
+													j--
+												}
+											}
+										}
+									}
+								}
+							}
+
+							// put them back onto everyone's hands
+							for (var i = 0; i < data.newOrder.length; i++) {
+								for (var j = 0; j < window.game.players.length; j++) {
+									// TODO :: this here is a bit dirty: we know that player ids go from 0 up, so we can just use them as array indices indexing data.newOrder here...
+									if (window.game.players[j].id == i) {
+										for (var c = 0; c < data.newOrder[i].length; c++) {
+											window.game.getCard(data.newOrder[i][c]).location = "notHandYet";
+											window.game.getCard(data.newOrder[i][c]).putOntoHand(window.game.players[j].id);
+										}
+									}
+								}
+							}
+
+							// reorganize everyone's hands
+							for (var i = 0; i < window.game.players.length; i++) {
+								window.game.refreshHand(window.game.players[i].id);
+							}
+						}
 					}
 				}
 			}
@@ -648,6 +686,8 @@ window.game = {
 			origin: null,
 			// which kind of a card is this (ephemere, instant, permanent)?
 			kind: null,
+			// the filename of this card, e.g. forest/forest_inst_reunis.jpg
+			filename: imgPath,
 			// current position
 			curX: x,
 			curY: y,
@@ -782,6 +822,58 @@ window.game = {
 						this.turnUp();
 						this.location = "table";
 						this.moveTo(window.game.midX, window.game.midY);
+
+						// re-unify all forest cards from all players, shuffle them, and redistribute
+						if (this.filename == "forest/forest_inst_reunis.jpg") {
+
+							// get all forest cards from all hands
+							var forestCards = [];
+							for (var i = 0; i < window.game.players.length; i++) {
+								var hand = window.game.hands[window.game.players[i].id];
+								if (hand) {
+									for (var j = 0; j < hand.length; j++) {
+										if (window.game.getCard(hand[j]).origin == "forest") {
+											forestCards.push(hand[j]);
+											window.game.getCard(hand[j]).turnDown();
+											window.game.hands[window.game.players[i].id].splice(j, 1);
+											j--;
+										}
+									}
+								}
+							}
+
+							// shuffle them
+							var shuffledForestCards = [];
+							while (forestCards.length > 0) {
+								var randIndex = Math.floor(Math.random() * forestCards.length);
+								shuffledForestCards.push(forestCards.splice(randIndex, 1)[0]);
+							}
+
+							// put them back onto everyone's hands
+							var curPlayer = 0;
+							var newOrder = [];
+							for (var i = 0; i < shuffledForestCards.length; i++) {
+								var giveCardTo = window.game.players[curPlayer].id;
+								if (!newOrder[giveCardTo]) {
+									newOrder[giveCardTo] = [];
+								}
+								window.game.getCard(shuffledForestCards[i]).location = "notHandYet";
+								window.game.getCard(shuffledForestCards[i]).putOntoHand(giveCardTo);
+								newOrder[giveCardTo].push(shuffledForestCards[i]);
+								curPlayer++;
+								if (curPlayer >= window.game.players.length) {
+									curPlayer = 0;
+								}
+							}
+
+							// reorganize everyone's hands
+							for (var i = 0; i < window.game.players.length; i++) {
+								window.game.refreshHand(window.game.players[i].id);
+							}
+
+							// tell the server and the other players about this happening
+							window.game.sendToServer({action: "reuniteForestCards", newOrder: newOrder});
+						}
 						break;
 				}
 

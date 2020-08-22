@@ -63,6 +63,16 @@ public class Player {
 		return Record.fromAnything(result);
 	}
 
+	public void awaitNothingOngoing() {
+		while (this.msgs.size() > 0) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// whoops
+			}
+		}
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (other == null) {
