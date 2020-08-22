@@ -791,8 +791,9 @@ window.game = {
 				label.innerHTML = caption;
 				label.style.position = "absolute";
 				label.style.top = "-16pt";
-				label.style.left = "0pt";
-				label.style.width = "100%";
+				// we make the label thrice as wide as the card it is on so that we have space for longer names
+				label.style.left = "-100%";
+				label.style.width = "300%";
 				label.style.textAlign = "center";
 				this.label = label;
 				this.div.appendChild(label);
