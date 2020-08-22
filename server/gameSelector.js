@@ -338,6 +338,7 @@ window.game = {
 
 							var card = window.game.getCard(data.card);
 
+							card.turnDown();
 							card.putOntoHand(data.player);
 
 							// we also-select it so that this player knows another player did this
