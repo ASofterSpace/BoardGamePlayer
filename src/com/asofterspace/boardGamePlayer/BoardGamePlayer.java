@@ -28,6 +28,29 @@ public class BoardGamePlayer {
 	public final static String VERSION_NUMBER = "0.0.0.4(" + Utils.TOOLBOX_VERSION_NUMBER + ")";
 	public final static String VERSION_DATE = "19. July 2020 - 20. August 2020";
 
+
+	/*
+	TODO:
+	* Allow screen resizing in the middle of it all
+	* squash the decks a bit more
+	   so that the rest of the board
+	   is a bit more spacious
+	* add exit game button or somesuch,
+	   maybe also restart game button,
+	   with exit game meaning that now
+	   all clients stop calling the comm loop
+	   >> even better: we just shut
+			down the server, and if
+			comm loop gives back 404
+			60 times in a row, stop comm loop
+	* make it possible to reorganize cards on hand
+	* make a size selection so
+	   that e.g. Jayem can have
+	   cards sized smaller (ideally,
+	   remember the selection, so
+	   if name contains J, put selection
+	   by default at this-and-that)
+	*/
 	public static void main(String[] args) {
 
 		// let the Utils know in what program it is being used
