@@ -24,8 +24,6 @@ public class BoardGamePlayer {
 	public final static String GAMES_DIR = "server/games";
 	public final static String WEB_ROOT_DIR = "deployed";
 
-	private static Directory serverDir;
-
 	public final static String PROGRAM_TITLE = "BoardGamePlayer";
 	public final static String VERSION_NUMBER = "0.0.0.4(" + Utils.TOOLBOX_VERSION_NUMBER + ")";
 	public final static String VERSION_DATE = "19. July 2020 - 20. August 2020";
@@ -53,7 +51,7 @@ public class BoardGamePlayer {
 		System.out.println("Looking at directories...");
 
 		Directory dataDir = new Directory(DATA_DIR);
-		serverDir = new Directory(SERVER_DIR);
+		Directory serverDir = new Directory(SERVER_DIR);
 		Directory gamesDir = new Directory(GAMES_DIR);
 		Directory webRoot = new Directory(WEB_ROOT_DIR);
 
@@ -91,7 +89,7 @@ public class BoardGamePlayer {
 
 			System.out.println("Starting the server on port " + database.getPort() + "...");
 
-			Server server = new Server(webRoot, database);
+			Server server = new Server(webRoot, serverDir, database);
 
 			server.setWhitelist(whitelist);
 
@@ -106,10 +104,6 @@ public class BoardGamePlayer {
 
 			System.out.println("Oh no! The input could not be parsed: " + e);
 		}
-	}
-
-	public static Directory getServerDir() {
-		return serverDir;
 	}
 
 }

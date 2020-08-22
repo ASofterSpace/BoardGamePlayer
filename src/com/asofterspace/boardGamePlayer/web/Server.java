@@ -16,16 +16,20 @@ public class Server extends WebServer {
 
 	private Database db;
 
+	private Directory serverDir;
 
-	public Server(Directory webRoot, Database db) {
+
+	public Server(Directory webRoot, Directory serverDir, Database db) {
 
 		super(webRoot, db.getPort());
 
 		this.db = db;
+
+		this.serverDir = serverDir;
 	}
 
 	protected WebServerRequestHandler getHandler(Socket request) {
-		return new ServerRequestHandler(this, request, webRoot, db);
+		return new ServerRequestHandler(this, request, webRoot, serverDir, db);
 	}
 
 }

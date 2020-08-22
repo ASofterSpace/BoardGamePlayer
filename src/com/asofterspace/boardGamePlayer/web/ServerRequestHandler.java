@@ -4,7 +4,6 @@
  */
 package com.asofterspace.boardGamePlayer.web;
 
-import com.asofterspace.boardGamePlayer.BoardGamePlayer;
 import com.asofterspace.boardGamePlayer.Database;
 import com.asofterspace.boardGamePlayer.games.Elfik;
 import com.asofterspace.boardGamePlayer.games.ElfikPlayer;
@@ -30,12 +29,16 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 
 	private Database db;
 
+	private Directory serverDir;
 
-	public ServerRequestHandler(WebServer server, Socket request, Directory webRoot, Database db) {
+
+	public ServerRequestHandler(WebServer server, Socket request, Directory webRoot, Directory serverDir, Database db) {
 
 		super(server, request, webRoot);
 
 		this.db = db;
+
+		this.serverDir = serverDir;
 	}
 
 	@Override
@@ -183,7 +186,7 @@ public class ServerRequestHandler extends WebServerRequestHandler {
 
 			// serves images and PDFs directly from the server dir, rather than the deployed dir
 			if (locEquiv.toLowerCase().endsWith(".jpg") || locEquiv.toLowerCase().endsWith(".pdf")) {
-				File result = new File(BoardGamePlayer.getServerDir(), locEquiv);
+				File result = new File(serverDir, locEquiv);
 				if (result.exists()) {
 					return result;
 				}
