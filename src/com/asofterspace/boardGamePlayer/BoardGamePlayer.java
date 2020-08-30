@@ -44,6 +44,10 @@ public class BoardGamePlayer {
 			comm loop gives back 404
 			60 times in a row, stop comm loop
 	* make it possible to reorganize cards on hand
+	* if commloop throws exception, put current messages to server into next packet (and keep doung that each time, so a message never gets lost from us to server)
+	* also in commloop explicitly acknowledge messages, so when some not ackd yet, send again
+	  > therefore, it could happen the sane message gets sent twice from the server (if an ack went missing), so in that case, have a prefilter on js client side if message comes in that we already saw (by message id), ignore it (but ack it again, just to
+	  > be sure! maybe have "ack all up to" num additionally in the comm loop so alllll are acked up to that wirhout explicit listing)
 	*/
 	public static void main(String[] args) {
 

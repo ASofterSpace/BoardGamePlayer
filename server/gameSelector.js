@@ -149,7 +149,7 @@ window.game = {
 			};
 
 			var request = new XMLHttpRequest();
-			request.open("POST", "commLoop", false);
+			request.open("POST", "commLoop", true);
 			request.setRequestHeader("Content-Type", "application/json");
 
 			//# actually handle the response - that is, the server informing us about all the things that are happening
@@ -525,6 +525,38 @@ window.game = {
 		}
 	},
 
+	onResize: function() {
+		window.game.height = window.innerHeight;
+		window.game.gameArea = document.getElementById("gameArea");
+		window.game.gameArea.style.height = window.game.height + "px";
+		window.game.width = window.game.gameArea.clientWidth;
+
+		window.game.moves = [];
+		for (var i = 0; i < window.game.cards.length; i++) {
+			var curCard = window.game.cards[i];
+
+			curCard.imgWidth = window.game.width * window.game.cardWidthFactor;
+			curCard.imgHeight = window.game.cardHeightRatio * curCard.imgWidth;
+			curCard.img.style.width = curCard.imgWidth + "px";
+			curCard.backImg.style.width = curCard.imgWidth + "px";
+
+			window.game.moves.push({
+				card: curCard,
+				x: ((window.game.width * curCard.targetRelativeX) - (curCard.imgWidth / 2)),
+				y: ((window.game.height * curCard.targetRelativeY) - (curCard.imgHeight / 2)),
+			});
+		}
+
+		var bigCardImgWidth = (window.game.width / 4);
+		var bigCardImgHeight = 1.53846 * bigCardImgWidth;
+		if (window.game.bigCardImg) {
+			window.game.bigCardImg.style.width = bigCardImgWidth + "px";
+		}
+		if (window.game.bigCardDiv) {
+			window.game.bigCardDiv.style.top = ((window.game.height / 2) - (bigCardImgHeight / 2)) + "px";
+		}
+	},
+
 	sendToServer: function(data) {
 
 		this.msgsOut.push(data);
@@ -600,6 +632,7 @@ window.game = {
 		bigCardImg.style.borderRadius = "16pt";
 		bigCardImg.style.display = "block";
 		var bigCardDiv = document.createElement("div");
+		this.bigCardDiv = bigCardDiv;
 		var bigCardInnerDiv = document.createElement("div");
 		this.bigCardInnerDiv = bigCardInnerDiv;
 		bigCardInnerDiv.style.position = "absolute";
@@ -718,9 +751,12 @@ window.game = {
 			kind: null,
 			// the filename of this card, e.g. forest/forest_inst_reunis.jpg
 			filename: imgPath,
-			// current position
-			curX: x,
-			curY: y,
+			// current position, in absolute pixels
+			curX: 0,
+			curY: 0,
+			// target position, in relative units from 0.0 to 1.0
+			targetRelativeX: x,
+			targetRelativeY: y,
 			curRot: 0,
 
 			turnUp: function() {
@@ -752,6 +788,8 @@ window.game = {
 						window.game.moves.splice(i, 1);
 					}
 				}
+				card.targetRelativeX = x;
+				card.targetRelativeY = y;
 				window.game.moves.push({
 					card: this,
 					x: ((window.game.width * x) - (this.imgWidth / 2)),
@@ -1121,7 +1159,7 @@ window.startGame = function(game) {
 	}
 
 	var request = new XMLHttpRequest();
-	request.open("POST", "startGame", false);
+	request.open("POST", "startGame", true);
 	request.setRequestHeader("Content-Type", "application/json");
 
 	request.onreadystatechange = function() {
@@ -1150,13 +1188,12 @@ window.startGame = function(game) {
 	document.getElementById("nameBar").style.display = "none";
 	document.getElementById("gameSelection").style.display = "none";
 
-	window.game.height = window.innerHeight;
-	window.game.gameArea = document.getElementById("gameArea");
-	window.game.gameArea.style.height = window.game.height + "px";
-	window.game.width = window.game.gameArea.clientWidth;
+	window.addEventListener("resize", window.game.onResize);
+	window.game.onResize();
 
 	request.send(JSON.stringify(data));
 };
+
 
 // enable optional debugging
 window.showDebugLog = true;
