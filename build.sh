@@ -4,6 +4,10 @@ if [[ ! -d ../Toolbox-Java ]]; then
 	echo "It looks like you did not yet get the Toolbox-Java project - please do so (and put it as a folder next to this folder.)"
 	exit 1
 fi
+if [[ ! -d ../Toolbox-JavaScript ]]; then
+	echo "It looks like you did not yet get the Toolbox-JavaScript project - please do so (and put it as a folder next to this folder.)"
+	exit 1
+fi
 
 cd src/com/asofterspace
 
@@ -24,6 +28,22 @@ cp ../Toolbox-Java/src/com/asofterspace/toolbox/coders/*.* src/com/asofterspace/
 cp ../Toolbox-Java/src/com/asofterspace/toolbox/io/*.* src/com/asofterspace/toolbox/io
 cp ../Toolbox-Java/src/com/asofterspace/toolbox/utils/*.* src/com/asofterspace/toolbox/utils
 cp ../Toolbox-Java/src/com/asofterspace/toolbox/web/*.* src/com/asofterspace/toolbox/web
+
+
+cd deployed
+
+rm -rf toolbox
+
+mkdir toolbox
+cd toolbox
+
+mkdir utils
+
+cd ../..
+
+cp ../Toolbox-JavaScript/toolbox/*.js deployed/toolbox
+cp ../Toolbox-JavaScript/toolbox/utils/*.* deployed/toolbox/utils
+
 
 rm -rf bin
 

@@ -911,11 +911,7 @@ window.game = {
 							}
 
 							// shuffle them
-							var shuffledForestCards = [];
-							while (forestCards.length > 0) {
-								var randIndex = Math.floor(Math.random() * forestCards.length);
-								shuffledForestCards.push(forestCards.splice(randIndex, 1)[0]);
-							}
+							var shuffledForestCards = toolbox.utils.SortUtils.shuffle(forestCards);
 
 							// put them back onto everyone's hands
 							var curPlayer = 0;

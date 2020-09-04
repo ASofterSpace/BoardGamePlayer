@@ -99,6 +99,12 @@ public class BoardGamePlayer {
 			for (File gameFile : gameFiles) {
 				whitelist.add(serverDir.getRelativePath(gameFile).replace('\\', '/'));
 			}
+			Directory toolboxJsDir = new Directory(webRoot, "toolbox");
+			recursively = true;
+			List<File> toolboxJsFiles = toolboxJsDir.getAllFiles(recursively);
+			for (File toolboxJsFile : toolboxJsFiles) {
+				whitelist.add(webRoot.getRelativePath(toolboxJsFile).replace('\\', '/'));
+			}
 
 
 			System.out.println("Templating the web application...");

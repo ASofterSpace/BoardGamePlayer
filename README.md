@@ -10,7 +10,7 @@ Runs a server that can be used for playing board games against friends :)
 
 ## Setup
 
-Download our Toolbox-Java (which is a separate project here on github) into an adjacent directory on your hard drive.
+Download our Toolbox-Java and Toolbox-JavaScript (which are separate projects here on github) into adjacent directories on your hard drive.
 
 Start the build by calling under Windows:
 
