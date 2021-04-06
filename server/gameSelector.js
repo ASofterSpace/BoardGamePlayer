@@ -1114,6 +1114,12 @@ window.game = {
 							if (window.game.selectedCard.location != "hand") {
 								// ... move it to your hand!
 								window.game.selectedCard.putOntoHand(window.game.playerId);
+
+								// remove the hard selection from this card, as we usually do not want to keep
+								// doing stuff with the card we just put on our hand, but keep it soft selected
+								// so that it is clear that this is the card we last used
+								window.game.selectedCard.softSelect();
+
 								// tell the server (and the other players) about this
 								window.game.sendToServer({action: "grabOntoHand", card: window.game.selectedCard.id});
 							} else {
